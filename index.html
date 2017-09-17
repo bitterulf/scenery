@@ -1,0 +1,92 @@
+<html>
+  <head>
+    <script src="https://aframe.io/releases/0.6.1/aframe.min.js"></script>
+    <script src="https://rawgit.com/ngokevin/aframe-animation-component/master/dist/aframe-animation-component.min.js"></script>
+    <script src="https://rawgit.com/protyze/aframe-curve-component/master/dist/aframe-curve-component.min.js"></script>
+    <script src="https://rawgit.com/protyze/aframe-alongpath-component/master/dist/aframe-alongpath-component.min.js"></script>
+    <script src="https://rawgit.com/ngokevin/kframe/master/components/template/dist/aframe-template-component.min.js"></script>
+
+    <script src="https://rawgit.com/tizzle/aframe-sprite-component/master/dist/aframe-sprite-component.min.js"></script>
+
+    <script>
+        AFRAME.registerComponent('fireshot', {
+          schema: {},
+          init: function () {
+              console.log('i am a fireshot!', this.data, this);
+              const height = parseInt(this.data.height);
+
+              const duration = parseInt(this.data.duration);
+              const delay = parseInt(this.data.delay);
+
+              const source = this.data.source.split(' ');
+              const sourceX = parseInt(source[0]);
+              const sourceY = parseInt(source[1]);
+              const sourceZ = parseInt(source[2]);
+
+              const target = this.data.target.split(' ');
+              const targetX = parseInt(target[0]);
+              const targetY = parseInt(target[1]);
+              const targetZ = parseInt(target[2]);
+
+              const middleX = (targetX - sourceX) / 2 + sourceX;
+              const middleY = (targetY - sourceY) / 2 + sourceY + height;
+              const middleZ = (targetZ - sourceZ) / 2 + sourceZ;
+
+              const pos = function(x, y, z) {
+                  return (x) + ' '+ (y) +' '+ (z);
+              };
+
+              this.el.innerHTML = '<a-curve id="'+this.data.id+'"><a-curve-point position="'+pos(sourceX, sourceY, sourceZ)+'"></a-curve-point><a-curve-point position="'+pos(middleX, middleY, middleZ)+'"></a-curve-point><a-curve-point position="'+pos(targetX, targetY, targetZ)+'"></a-curve-point></a-curve>'
+              + '<a-entity alongpath="curve: #'+this.data.id+'; dur: '+duration+'; delay: '+delay+'; loop: true; rotate: true">'+this.el.innerHTML+'</a-entity>';
+          },
+          update: function () {},
+          tick: function () {},
+          remove: function () {},
+          pause: function () {},
+          play: function () {}
+        });
+
+        AFRAME.registerComponent('arrow', {
+          schema: {},
+          init: function () {
+              let result = '';
+              const amount = parseInt(this.data.amount);
+
+              for (let a = 0; a < amount; a++) {
+                  result+='<a-sprite position=" 0 0 '+ ((a * 0.05) - (amount * 0.05)) +'" resize="0.1 0.1 0.1" src="arrow.png"></a-sprite>';
+              }
+
+              this.el.innerHTML = result;
+          },
+          update: function () {},
+          tick: function () {},
+          remove: function () {},
+          pause: function () {},
+          play: function () {}
+        });
+    </script>
+  </head>
+  <body>
+    <a-scene>
+    <a-box position="-1 0.5 -3" rotation="0 45 0" color="#4CC3D9"
+    animation="property: position; dir: alternate; dur: 1000; easing: easeInSine; loop: true; to: 1 0.5 -3"
+    ></a-box>
+    <a-plane position="0 0 0" rotation="-90 0 0" width="4" height="4" color="#7BC8A4"></a-plane>
+
+    <a-entity position="0 1.5 2" camera look-controls></a-entity>
+
+        <a-entity fireshot="height: 1; id: fireshot1; source: 0 0 0; target: 1 0 0; duration: 1000; delay: 0">
+            <a-entity arrow="amount: 5"></a-entity>
+        </a-entity>
+        <a-entity fireshot="height: 1; id: fireshot2; source: 0 0 0; target: 1 0 0; duration: 1000; delay: 200">
+            <a-entity arrow="amount: 5"></a-entity>
+        </a-entity>
+        <a-entity fireshot="height: 1; id: fireshot3; source: 0 0 0; target: 1 0 0; duration: 1000; delay: 400">
+            <a-entity arrow="amount: 5"></a-entity>
+        </a-entity>
+
+        <a-sprite position="0 0.25 0" resize="0.5 0.5 0.5" src="bowman.png"></a-sprite>
+
+    </a-scene>
+  </body>
+</html>
