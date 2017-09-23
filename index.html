@@ -64,10 +64,38 @@
           pause: function () {},
           play: function () {}
         });
+
+        AFRAME.registerSystem('blob', {
+            schema: {},
+            init: function () {
+                console.log('FUNK');
+            }
+        });
+
+        AFRAME.registerComponent('blob', {
+            init: function () {
+                console.log('blob', this.system);
+                this.el.innerHTML = '<a-box position="-1 0.5 -3" rotation="0 45 0" color="#4CC3D9"></a-box>';
+            }
+        });
+
+        var extendDeep = AFRAME.utils.extendDeep;
+        var meshMixin = AFRAME.primitives.getMeshMixin();
+
+        AFRAME.registerPrimitive('a-blob', extendDeep({}, meshMixin, {
+            defaultComponents: {
+                blob: {size: 10}
+            },
+            mappings: {
+                size: 'blob.size'
+            }
+        }));
+
     </script>
   </head>
   <body>
     <a-scene>
+    <a-blob></a-blob>
     <a-box position="-1 0.5 -3" rotation="0 45 0" color="#4CC3D9"
     animation="property: position; dir: alternate; dur: 1000; easing: easeInSine; loop: true; to: 1 0.5 -3"
     ></a-box>
