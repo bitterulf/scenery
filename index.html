@@ -98,11 +98,45 @@
             }
         }));
 
+        AFRAME.registerComponent('timeline', {
+            schema: {
+                duration: {type: 'number', default: 1000},
+                steps: {type: 'number', default: 10}
+            },
+            init: function () {
+                const data = this.data;
+                const el = this.el;
+                let fraction = 0;
+
+                const positions = Array.prototype.slice.call(this.el.querySelectorAll('a-position')).map(function(el) {
+                    return el.getAttribute('timeline-data').split(' ').map(parseFloat);
+                });
+
+                console.log(positions);
+
+                el.addEventListener('timelineUpdate', function (ev) {
+                    console.log(ev.detail);
+                });
+
+                setInterval(function() {
+                    fraction += 1 / data.steps;
+                    if (fraction > 1) {
+                        fraction -= 1;
+                    }
+                    el.emit('timelineUpdate', fraction);
+                }, data.duration);
+            }
+        });
+
     </script>
   </head>
   <body>
     <div style="width: 512px; height: 512px;">
         <a-scene embedded="true">
+        <a-entity timeline="duration: 1000; steps: 10">
+            <a-position timeline-data="0 1 1 1" />
+        </a-entity>
+
       <a-assets>
         <div id="hello">
           <h1 style="background: red;">F!</h1>
