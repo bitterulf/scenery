@@ -7,6 +7,9 @@
     <script src="https://rawgit.com/ngokevin/kframe/master/components/template/dist/aframe-template-component.min.js"></script>
 
     <script src="https://rawgit.com/tizzle/aframe-sprite-component/master/dist/aframe-sprite-component.min.js"></script>
+    <script src="https://rawgit.com/maxkrieger/aframe-draw-component/master/dist/aframe-draw-component.min.js"></script>
+
+    <script src="https://rawgit.com/scenevr/htmltexture-component/master/dist/aframe-htmltexture-component.min.js"></script>
 
     <script>
         AFRAME.registerComponent('fireshot', {
@@ -75,7 +78,11 @@
         AFRAME.registerComponent('blob', {
             init: function () {
                 console.log('blob', this.system);
-                this.el.innerHTML = '<a-box position="-1 0.5 -3" rotation="0 45 0" color="#4CC3D9"></a-box>';
+
+                this.el.innerHTML = '<a-box position="-1 0.5 -3" rotation="0 45 0" color="#4CC3D9" '
+                +'event-set__enter="_event: mouseenter; material.color: yellowgreen; scale: 3 1 1" '
+                +'event-set__leave="_event: mouseleave; material.color: skyblue; scale: 1 1 1" '
+                +'></a-box>';
             }
         });
 
@@ -94,27 +101,49 @@
     </script>
   </head>
   <body>
-    <a-scene>
-    <a-blob></a-blob>
-    <a-box position="-1 0.5 -3" rotation="0 45 0" color="#4CC3D9"
-    animation="property: position; dir: alternate; dur: 1000; easing: easeInSine; loop: true; to: 1 0.5 -3"
-    ></a-box>
-    <a-plane position="0 0 0" rotation="-90 0 0" width="4" height="4" color="#7BC8A4"></a-plane>
+    <div style="width: 512px; height: 512px;">
+        <a-scene embedded="true">
+      <a-assets>
+        <div id="hello">
+          <h1 style="background: red;">F!</h1>
+        </div>
+        </a-assets>
 
-    <a-entity position="0 1.5 2" camera look-controls></a-entity>
 
-        <a-entity fireshot="height: 1; id: fireshot1; source: 0 0 0; target: 1 0 0; duration: 1000; delay: 0">
-            <a-entity arrow="amount: 5"></a-entity>
+        <a-entity id="box" geometry="primitive: box" position="-3 1 -4" draw="width: 128; height: 128;" htmltexture="asset: #hello"></a-entity>
+
+        <a-blob></a-blob>
+        <a-box position="-1 0.5 -3" rotation="0 45 0" color="#4CC3D9"
+        animation="property: position; dir: alternate; dur: 1000; easing: easeInSine; loop: true; to: 1 0.5 -3"
+        ></a-box>
+        <a-plane position="0 0 0" rotation="-90 0 0" width="4" height="4" color="#7BC8A4"></a-plane>
+
+        <a-entity position="0 1.5 2" camera look-controls wasd-controls>
+            <a-entity cursor="fuse: false;"
+                      position="0 0 -1"
+                      geometry="primitive: ring"
+                      material="color: black; shader: flat" scale="0.01 0.01 0.01">
+            </a-entity>
         </a-entity>
-        <a-entity fireshot="height: 1; id: fireshot2; source: 0 0 0; target: 1 0 0; duration: 1000; delay: 200">
-            <a-entity arrow="amount: 5"></a-entity>
-        </a-entity>
-        <a-entity fireshot="height: 1; id: fireshot3; source: 0 0 0; target: 1 0 0; duration: 1000; delay: 400">
-            <a-entity arrow="amount: 5"></a-entity>
-        </a-entity>
 
-        <a-sprite position="0 0.25 0" resize="0.5 0.5 0.5" src="bowman.png"></a-sprite>
+         <a-box position="0 3.5 -2" rotation="30 30 0" color="skyblue" class="clickable" cursor>
+            <a-animation attribute="rotation" begin="click" dur="500" fill="backwards" to="30 30 360"></a-animation>
+            <a-animation attribute="rotation" begin="mouseenter" dur="500" fill="backwards" to="30 30 360"></a-animation>
+          </a-box>
 
-    </a-scene>
+            <a-entity fireshot="height: 1; id: fireshot1; source: 0 0 0; target: 1 0 0; duration: 1000; delay: 0">
+                <a-entity arrow="amount: 5"></a-entity>
+            </a-entity>
+            <a-entity fireshot="height: 1; id: fireshot2; source: 0 0 0; target: 1 0 0; duration: 1000; delay: 200">
+                <a-entity arrow="amount: 5"></a-entity>
+            </a-entity>
+            <a-entity fireshot="height: 1; id: fireshot3; source: 0 0 0; target: 1 0 0; duration: 1000; delay: 400">
+                <a-entity arrow="amount: 5"></a-entity>
+            </a-entity>
+
+            <a-sprite position="0 0.25 0" resize="0.5 0.5 0.5" src="bowman.png"></a-sprite>
+
+        </a-scene>
+      </div>
   </body>
 </html>
