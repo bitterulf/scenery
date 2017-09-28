@@ -1,0 +1,63 @@
+<html>
+    <head>
+        <script src="https://aframe.io/releases/0.6.1/aframe.min.js"></script>
+        <script src="https://rawgit.com/ngokevin/aframe-animation-component/master/dist/aframe-animation-component.min.js"></script>
+        <script src="https://rawgit.com/protyze/aframe-curve-component/master/dist/aframe-curve-component.min.js"></script>
+        <script src="https://rawgit.com/protyze/aframe-alongpath-component/master/dist/aframe-alongpath-component.min.js"></script>
+        <script src="https://rawgit.com/ngokevin/kframe/master/components/template/dist/aframe-template-component.min.js"></script>
+        <script src="https://rawgit.com/tizzle/aframe-sprite-component/master/dist/aframe-sprite-component.min.js"></script>
+        <script src="https://rawgit.com/maxkrieger/aframe-draw-component/master/dist/aframe-draw-component.min.js"></script>
+        <script src="https://rawgit.com/scenevr/htmltexture-component/master/dist/aframe-htmltexture-component.min.js"></script>
+        <script>
+            AFRAME.registerComponent('timeline', {
+                schema: {
+                    duration: {type: 'number', default: 1000},
+                    steps: {type: 'number', default: 100}
+                },
+                init: function () {
+                    const data = this.data;
+                    const el = this.el;
+                    let fraction = 0.001;
+
+                    const positions = Array.prototype.slice.call(this.el.querySelectorAll('a-position')).map(function(el) {
+                        return el.getAttribute('timeline-data').split(' ').map(parseFloat);
+                    });
+
+                    const curve = new THREE.CatmullRomCurve3(
+                        positions.map(function(pos) {
+                            const vec = new THREE.Vector3(pos[1], pos[2], pos[3]);
+                            return vec;
+                        })
+                    );
+
+                    el.addEventListener('timelineUpdate', function (ev) {
+                        const pos = curve.getPointAt(ev.detail);
+                        el.setAttribute('position', pos.x + ', ' + pos.y + ', ' + pos.z);
+                    });
+
+                    setInterval(function() {
+                        el.emit('timelineUpdate', fraction);
+                        fraction += 1 / data.steps;
+                        if (fraction > 1) {
+                            fraction -= 1;
+                        }
+                    }, data.duration / data.steps);
+                }
+            });
+        </script>
+    </head>
+    <body>
+        <div style="width: 512px; height: 512px;">
+            <a-scene embedded="true">
+                <a-entity timeline="duration: 1000; steps: 100">
+                    <a-box position="0 2 -2" rotation="0 0 0" color="#4CC3D9"></a-box>
+                    <a-position timeline-data="0 0 0 0" />
+                    <a-position timeline-data="0 1 0 0" />
+                    <a-position timeline-data="0 1 1 1" />
+                    <a-position timeline-data="0 0 1 0" />
+                    <a-position timeline-data="0 0 0 0" />
+                </a-entity>
+            </a-scene>
+        </div>
+    </body>
+</html>
