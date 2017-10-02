@@ -23,17 +23,49 @@
                         return el.getAttribute('timeline-data').split(' ').map(parseFloat);
                     });
 
+                    const positionV = positions.map(function(pos) {
+                        const vec = new THREE.Vector3(pos[1], pos[2], pos[3]);
+                        return vec;
+                    });
+
                     const curve = new THREE.CatmullRomCurve3(
-                        positions.map(function(pos) {
-                            const vec = new THREE.Vector3(pos[1], pos[2], pos[3]);
-                            return vec;
-                        })
+                        positionV
                     );
 
                     el.addEventListener('timelineUpdate', function (ev) {
                         const pos = curve.getPointAt(ev.detail);
                         el.setAttribute('position', pos.x + ', ' + pos.y + ', ' + pos.z);
                     });
+
+                    let pointer = 0;
+
+                    for (let i = 0; i < 100; i++) {
+                        const pos = curve.getPointAt(i / 100);
+                        const vec = new THREE.Vector3(pos.x, pos.y, pos.z);
+                        if (pointer < positionV.length - 1) {
+                            if (vec.distanceTo(positionV[pointer]) > vec.distanceTo(positionV[pointer + 1])) {
+                                pointer++;
+                            }
+
+                            if (pointer < positionV.length - 1) {
+                                // save first "i" here if segment changes
+                                // an calculate path length from the crossed i
+
+                                const distA = vec.distanceTo(positionV[pointer]);
+                                const distB = vec.distanceTo(positionV[pointer + 1]);
+                                const totalDist = distA + distB;
+                                const percentA = distB / totalDist;
+                                const percentB = distA / totalDist;
+                                console.log('-->', percentA, percentB);
+                                const factor =
+                                      (positions[pointer+1][0] - positions[pointer][0]) * percentB + positions[pointer][0];
+                                console.log('factor', factor);
+
+                                console.log('loq', positions[pointer], positions[pointer+1], distA, distB);
+                            }
+                        }
+                        console.log(pos);
+                    }
 
                     setInterval(function() {
                         el.emit('timelineUpdate', fraction);
@@ -52,10 +84,10 @@
                 <a-entity timeline="duration: 1000; steps: 100">
                     <a-box position="0 2 -2" rotation="0 0 0" color="#4CC3D9"></a-box>
                     <a-position timeline-data="0 0 0 0" />
-                    <a-position timeline-data="0 1 0 0" />
-                    <a-position timeline-data="0 1 1 1" />
-                    <a-position timeline-data="0 0 1 0" />
-                    <a-position timeline-data="0 0 0 0" />
+                    <a-position timeline-data="0.25 1 0 0" />
+                    <a-position timeline-data="0.5 1 1 1" />
+                    <a-position timeline-data="0.6 0 1 0" />
+                    <a-position timeline-data="1 0 0 0" />
                 </a-entity>
             </a-scene>
         </div>
