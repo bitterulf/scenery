@@ -23,6 +23,8 @@
                         return el.getAttribute('timeline-data').split(' ').map(parseFloat);
                     });
 
+                    console.log('funky', positions);
+
                     const positionV = positions.map(function(pos) {
                         const vec = new THREE.Vector3(pos[1], pos[2], pos[3]);
                         return vec;
@@ -32,44 +34,114 @@
                         positionV
                     );
 
+                    const steps = [];
+
+                    for (let i = 0; i < 100; i++) {
+                        const fraction = i / 100;
+                        const position = curve.getPointAt(fraction);
+
+                        steps.push({
+                            step: i,
+                            fraction: fraction,
+                            position: position,
+                        });
+                    }
+
+                    let nearestStep = 0;
+
+                    positionV.forEach(function(originalPosition, positionIndex) {
+                        if (positionIndex == positionV.length - 1) {
+                            return;
+                        }
+
+                        steps.forEach(function(step, index) {
+                            if (index > nearestStep) {
+                                if (step.position.distanceTo(originalPosition) < steps[nearestStep].position.distanceTo(originalPosition)) {
+                                    nearestStep = index;
+                                }
+                            }
+                        });
+
+                        steps[nearestStep].positionIndex = positionIndex;
+                        console.log('near', nearestStep);
+                    });
+
+                    let lastPositionIndex = 0;
+
+                    steps.forEach(function(step, index) {
+                        if (step.positionIndex) {
+                            lastPositionIndex = step.positionIndex;
+                        } else {
+                            step.positionIndex = lastPositionIndex;
+                        }
+                    });
+
+                    const positionGroups = {};
+
+                    steps.forEach(function(step, index) {
+                        if (!positionGroups[step.positionIndex]) {
+                            positionGroups[step.positionIndex] = {
+                                length: 0,
+                                start: -1
+                            };
+                        }
+                        if (positionGroups[step.positionIndex].start < 0) {
+                            positionGroups[step.positionIndex].start = index;
+                        }
+                        else {
+                            positionGroups[step.positionIndex].end = index;
+                        }
+                        positionGroups[step.positionIndex].length++;
+                    });
+
+                    steps.forEach(function(step, index) {
+                        const positionGroup = positionGroups[step.positionIndex];
+                        step.fraction =  (step.step - positionGroup.start) / positionGroup.length;
+                    });
+
+                    steps.forEach(function(step, index) {
+                        step.timeA = positions[step.positionIndex][0];
+                        step.timeB = positions[step.positionIndex + 1][0];
+                        step.calulatedTime = (step.timeB - step.timeA) * step.fraction + step.timeA;
+                    });
+
+                    const calculatePosition = function(frameFraction) {
+                        let lastStep = -1;
+
+                        steps.forEach(function(step, index) {
+                            if (step.calulatedTime > frameFraction && lastStep == -1) {
+                                lastStep = index;
+                            }
+                        });
+
+                        const stepA = steps[lastStep - 1];
+                        const stepB = steps[lastStep];
+
+                        if (lastStep < 0) {
+                            return steps[0].position;
+                        }
+
+                        const timeTotalDistance = stepB.calulatedTime - stepA.calulatedTime;
+                        const timePercent = (frameFraction - stepA.calulatedTime) / timeTotalDistance;
+                        const cX = (stepB.position.x - stepA.position.x) * timePercent + stepA.position.x;
+                        const cY = (stepB.position.y - stepA.position.y) * timePercent + stepA.position.y;
+                        const cZ = (stepB.position.z - stepA.position.z) * timePercent + stepA.position.z;
+                        const calcPosition = new THREE.Vector3(cX, cY, cZ);
+
+                        return calcPosition;
+                    };
+
                     el.addEventListener('timelineUpdate', function (ev) {
-                        const pos = curve.getPointAt(ev.detail);
+                        const pos = calculatePosition(ev.detail);
                         el.setAttribute('position', pos.x + ', ' + pos.y + ', ' + pos.z);
                     });
 
-                    let pointer = 0;
-
-                    for (let i = 0; i < 100; i++) {
-                        const pos = curve.getPointAt(i / 100);
-                        const vec = new THREE.Vector3(pos.x, pos.y, pos.z);
-                        if (pointer < positionV.length - 1) {
-                            if (vec.distanceTo(positionV[pointer]) > vec.distanceTo(positionV[pointer + 1])) {
-                                pointer++;
-                            }
-
-                            if (pointer < positionV.length - 1) {
-                                // save first "i" here if segment changes
-                                // an calculate path length from the crossed i
-
-                                const distA = vec.distanceTo(positionV[pointer]);
-                                const distB = vec.distanceTo(positionV[pointer + 1]);
-                                const totalDist = distA + distB;
-                                const percentA = distB / totalDist;
-                                const percentB = distA / totalDist;
-                                console.log('-->', percentA, percentB);
-                                const factor =
-                                      (positions[pointer+1][0] - positions[pointer][0]) * percentB + positions[pointer][0];
-                                console.log('factor', factor);
-
-                                console.log('loq', positions[pointer], positions[pointer+1], distA, distB);
-                            }
-                        }
-                        console.log(pos);
-                    }
-
                     setInterval(function() {
+
                         el.emit('timelineUpdate', fraction);
+
                         fraction += 1 / data.steps;
+
                         if (fraction > 1) {
                             fraction -= 1;
                         }
@@ -81,12 +153,12 @@
     <body>
         <div style="width: 512px; height: 512px;">
             <a-scene embedded="true">
-                <a-entity timeline="duration: 1000; steps: 100">
+                <a-entity timeline="duration: 10000; steps: 1000">
                     <a-box position="0 2 -2" rotation="0 0 0" color="#4CC3D9"></a-box>
                     <a-position timeline-data="0 0 0 0" />
-                    <a-position timeline-data="0.25 1 0 0" />
-                    <a-position timeline-data="0.5 1 1 1" />
-                    <a-position timeline-data="0.6 0 1 0" />
+                    <a-position timeline-data="0.01 1 0 0" />
+                    <a-position timeline-data="0.02 1 1 1" />
+                    <a-position timeline-data="0.03 0 1 0" />
                     <a-position timeline-data="1 0 0 0" />
                 </a-entity>
             </a-scene>
