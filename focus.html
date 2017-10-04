@@ -8,6 +8,7 @@
         <script src="https://rawgit.com/tizzle/aframe-sprite-component/master/dist/aframe-sprite-component.min.js"></script>
         <script src="https://rawgit.com/maxkrieger/aframe-draw-component/master/dist/aframe-draw-component.min.js"></script>
         <script src="https://rawgit.com/scenevr/htmltexture-component/master/dist/aframe-htmltexture-component.min.js"></script>
+        <script src="https://rawgit.com/donmccurdy/aframe-extras/master/dist/aframe-extras.loaders.min.js"></script>
         <script>
             AFRAME.registerComponent('timeline', {
                 schema: {
@@ -153,8 +154,35 @@
     <body>
         <div style="width: 512px; height: 512px;">
             <a-scene embedded="true">
-                <a-entity timeline="duration: 10000; steps: 1000">
-                    <a-box position="0 2 -2" rotation="0 0 0" color="#4CC3D9"></a-box>
+                <a-entity>
+
+                    <a-entity position="0 0 -3">
+                        <a-entity position="0 1.16 0" ply-model="src: url(upperBody.ply);">
+                            <a-entity position="0 1.850 0" ply-model="src: url(head.ply);"></a-entity>
+                            <a-entity position="-0.92 1.28 0" ply-model="src: url(upperArm.ply);">
+                                <a-entity position="-0.25 -1.7 0" ply-model="src: url(lowerArm.ply);">
+                                    <a-entity position="0 -1.5 0" ply-model="src: url(hand.ply);"></a-entity>
+                                </a-entity>
+                            </a-entity>
+                            <a-entity scale="-1 1 1" position="0.92 1.28 0" ply-model="src: url(upperArm.ply);">
+                                <a-entity position="-0.25 -1.7 0" ply-model="src: url(lowerArm.ply);">
+                                    <a-entity position="0 -1.5 0" ply-model="src: url(hand.ply);"></a-entity>
+                                </a-entity>
+                            </a-entity>
+                            <a-entity position="-0.3 -1.4 0" ply-model="src: url(upperLeg.ply);">
+                                <a-entity position="-0.2 -1.8 0" ply-model="src: url(lowerLeg.ply);">
+                                    <a-entity position="-0.1 -1.8 0" ply-model="src: url(foot.ply);"></a-entity>
+                                </a-entity>
+                            </a-entity>
+                            <a-entity scale="-1 1 1" position="0.3 -1.4 0" ply-model="src: url(upperLeg.ply);">
+                                <a-entity position="-0.2 -1.8 0" ply-model="src: url(lowerLeg.ply);">
+                                    <a-entity position="-0.1 -1.8 0" ply-model="src: url(foot.ply);"></a-entity>
+                                </a-entity>
+                            </a-entity>
+                        </a-entity>
+                        <a-entity position="0 -0.10038 0" ply-model="src: url(lowerBody.ply);"></a-entity>
+                    </a-entity>
+
                     <a-position timeline-data="0 0 0 0" />
                     <a-position timeline-data="0.01 1 0 0" />
                     <a-position timeline-data="0.02 1 1 1" />
