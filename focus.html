@@ -185,18 +185,38 @@
             });
 
             var extendDeep = AFRAME.utils.extendDeep;
-            var meshMixin = AFRAME.primitives.getMeshMixin();
 
-            AFRAME.registerPrimitive('a-figure', extendDeep({}, meshMixin, {
+            AFRAME.registerPrimitive('a-figure', extendDeep({}, AFRAME.primitives.getMeshMixin(), {
                 defaultComponents: {
                     figure: ''
                 }
             }));
+
+            AFRAME.registerComponent('army', {
+                init: function () {
+                    const figures = [];
+
+                    for (var y = 0; y < 5; y++) {
+                        for (var x = 0; x < 10; x++) {
+                            figures.push('<a-figure position="'+y+' 0 '+x+'"></a-figure>');
+                        }
+                    }
+
+                    this.el.innerHTML = figures.join('');
+                }
+            });
+
+            AFRAME.registerPrimitive('a-army', extendDeep({}, AFRAME.primitives.getMeshMixin(), {
+                defaultComponents: {
+                    army: ''
+                }
+            }));
+
         </script>
     </head>
     <body>
         <div style="width: 512px; height: 512px;">
-            <a-scene embedded="true">
+            <a-scene embedded="true" stats>
 
             <a-assets>
                 <script id="head" type="html">
@@ -214,17 +234,7 @@
                     <a-plane position="0 1 0" rotation="-90 0 0" width="4" height="4" color="#00C8A4" material="opacity: 0.25"></a-plane>
                     <a-plane position="0 2 0" rotation="-90 0 0" width="4" height="4" color="#00C8A4" material="opacity: 0.25"></a-plane>
 
-                    <a-figure position="0 0 0"></a-figure>
-                    <a-figure position="0 0 1"></a-figure>
-                    <a-figure position="0 0 2"></a-figure>
-
-                    <a-figure position="1 0 0"></a-figure>
-                    <a-figure position="1 0 1"></a-figure>
-                    <a-figure position="1 0 2"></a-figure>
-
-                    <a-figure position="2 0 0"></a-figure>
-                    <a-figure position="2 0 1"></a-figure>
-                    <a-figure position="2 0 2"></a-figure>
+                    <a-army position="0 0 0"></a-army>
 
                     <a-position timeline-data="0 0 0 0" />
                     <a-position timeline-data="0.01 1 0 0" />
