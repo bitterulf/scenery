@@ -149,6 +149,47 @@
                     }, data.duration / data.steps);
                 }
             });
+
+            AFRAME.registerComponent('figure', {
+                init: function () {
+                    this.el.innerHTML =
+                    '<a-entity position="0 5 0">'
+                        +'<a-entity position="0 1.16 0" ply-model="src: url(upperBody.ply);">'
+                            +'<a-entity position="0 1.850 0" ply-model="src: url(head.ply);"></a-entity>'
+                            +'<a-entity position="-0.92 1.28 0" ply-model="src: url(upperArm.ply);">'
+                                +'<a-entity position="-0.25 -1.7 0" ply-model="src: url(lowerArm.ply);">'
+                                    +'<a-entity position="0 -1.5 0" ply-model="src: url(hand.ply);"></a-entity>'
+                                +'</a-entity>'
+                            +'</a-entity>'
+                            +'<a-entity scale="1 1 1" position="0.92 1.28 0" ply-model="src: url(upperArm2.ply);">'
+                                +'<a-entity position="0.25 -1.7 0" ply-model="src: url(lowerArm2.ply);">'
+                                    +'<a-entity position="0 -1.5 0" ply-model="src: url(hand2.ply);"></a-entity>'
+                                +'</a-entity>'
+                            +'</a-entity>'
+                            +'<a-entity position="-0.3 -1.4 0" ply-model="src: url(upperLeg.ply);">'
+                                +'<a-entity position="-0.2 -1.8 0" ply-model="src: url(lowerLeg.ply);">'
+                                    +'<a-entity position="-0.1 -1.8 0" ply-model="src: url(foot.ply);"></a-entity>'
+                                +'</a-entity>'
+                            +'</a-entity>'
+                            +'<a-entity scale="1 1 1" position="0.3 -1.4 0" ply-model="src: url(upperLeg2.ply);">'
+                                +'<a-entity position="0.2 -1.8 0" ply-model="src: url(lowerLeg2.ply);">'
+                                    +'<a-entity position="0.1 -1.8 0" ply-model="src: url(foot2.ply);"></a-entity>'
+                                +'</a-entity>'
+                            +'</a-entity>'
+                        +'</a-entity>'
+                        +'<a-entity position="0 -0.10038 0" ply-model="src: url(lowerBody.ply);"></a-entity>'
+                    +'</a-entity>';
+                }
+            });
+
+            var extendDeep = AFRAME.utils.extendDeep;
+            var meshMixin = AFRAME.primitives.getMeshMixin();
+
+            AFRAME.registerPrimitive('a-figure', extendDeep({}, meshMixin, {
+                defaultComponents: {
+                    figure: ''
+                }
+            }));
         </script>
     </head>
     <body>
@@ -165,40 +206,7 @@
             </a-assets>
 
                 <a-entity>
-
-                    <a-entity template="src: #head" data-position="0 0 0">
-                        <script id="body" type="html">
-                            <a-entity position="0 1.16 0" ply-model="src: url(upperBody.ply);">
-                        </script>
-                    </a-entity>
-
-                    <a-entity position="0 5 0">
-                        <a-entity position="0 1.16 0" ply-model="src: url(upperBody.ply);">
-                            <a-entity position="0 1.850 0" ply-model="src: url(head.ply);"></a-entity>
-
-                            <a-entity position="-0.92 1.28 0" ply-model="src: url(upperArm.ply);">
-                                <a-entity position="-0.25 -1.7 0" ply-model="src: url(lowerArm.ply);">
-                                    <a-entity position="0 -1.5 0" ply-model="src: url(hand.ply);"></a-entity>
-                                </a-entity>
-                            </a-entity>
-                            <a-entity scale="1 1 1" position="0.92 1.28 0" ply-model="src: url(upperArm2.ply);">
-                                <a-entity position="0.25 -1.7 0" ply-model="src: url(lowerArm2.ply);">
-                                    <a-entity position="0 -1.5 0" ply-model="src: url(hand2.ply);"></a-entity>
-                                </a-entity>
-                            </a-entity>
-                            <a-entity position="-0.3 -1.4 0" ply-model="src: url(upperLeg.ply);">
-                                <a-entity position="-0.2 -1.8 0" ply-model="src: url(lowerLeg.ply);">
-                                    <a-entity position="-0.1 -1.8 0" ply-model="src: url(foot.ply);"></a-entity>
-                                </a-entity>
-                            </a-entity>
-                            <a-entity scale="1 1 1" position="0.3 -1.4 0" ply-model="src: url(upperLeg2.ply);">
-                                <a-entity position="0.2 -1.8 0" ply-model="src: url(lowerLeg2.ply);">
-                                    <a-entity position="0.1 -1.8 0" ply-model="src: url(foot2.ply);"></a-entity>
-                                </a-entity>
-                            </a-entity>
-                        </a-entity>
-                        <a-entity position="0 -0.10038 0" ply-model="src: url(lowerBody.ply);"></a-entity>
-                    </a-entity>
+                    <a-figure></a-figure>
 
                     <a-position timeline-data="0 0 0 0" />
                     <a-position timeline-data="0.01 1 0 0" />
