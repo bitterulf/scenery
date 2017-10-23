@@ -151,10 +151,7 @@
 
                     this.el.innerHTML =
                     '<a-entity scale="0.22 0.22 0.22" timeline="duration: '+duration+'; steps: '+steps+'">'
-                        +'<a-position timeline-data="0 '+randomX+' 0 0"></a-position>'
-                        +'<a-position timeline-data="'+middle+' '+randomX+' '+height+' '+randomY/2+'"></a-position>'
-                        +'<a-position timeline-data="'+end+' '+randomX+' 0 '+randomY+'"></a-position>'
-                        +'<a-position timeline-data="1 '+randomX+' 0 '+randomY+'"></a-position>'
+                        +this.el.innerHTML
                         +'<a-entity position="0 4.42 0">'
                             +'<a-entity position="0 1.16 0" ply-model="src: url(upperBody.ply);">'
                                 +'<a-entity position="0 1.850 0" ply-model="src: url(head.ply);"></a-entity>'
@@ -205,7 +202,19 @@
 
                     for (var y = 0; y < 5; y++) {
                         for (var x = 0; x < 10; x++) {
-                            figures.push('<a-figure position="'+y+' 0 '+x+'"></a-figure>');
+
+                            const randomX = Math.random();
+                            const randomY = Math.random();
+                            const middle = Math.random()/5 + 0.2;
+                            const height = Math.random()/5 + 0.2;
+                            const end = (1 - middle) * Math.random() + middle;
+
+                            const positionString = '<a-position timeline-data="0 '+randomX+' 0 0"></a-position>'
+                            +'<a-position timeline-data="'+middle+' '+randomX+' '+height+' '+randomY/2+'"></a-position>'
+                            +'<a-position timeline-data="'+end+' '+randomX+' 0 '+randomY+'"></a-position>'
+                            +'<a-position timeline-data="1 '+randomX+' 0 '+randomY+'"></a-position>';
+
+                            figures.push('<a-figure position="'+y+' 0 '+x+'">'+positionString+'</a-figure>');
                         }
                     }
 

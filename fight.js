@@ -6,7 +6,7 @@ const calculateFight = function(attackingTroop, defendingTroop, losses) {
         defenders.push({
             type: defendingTroop.type,
             x: 1,
-            y: d
+            y: d - defendingTroop.count / 2
         })
     }
 
@@ -14,7 +14,7 @@ const calculateFight = function(attackingTroop, defendingTroop, losses) {
         attackers.push({
             type: attackingTroop.type,
             x: -1,
-            y: a
+            y: a - attackingTroop.count / 2
         })
     }
 
@@ -28,9 +28,55 @@ const calculateFight = function(attackingTroop, defendingTroop, losses) {
         }
     }
 
-    console.log(defenders[Math.floor(Math.random() * defenders.length)]);
+    const primaryTargets = [];
+    const secondaryTargets = [];
 
-    console.log(defenders, attackers);
+    defenders.forEach(function(defender, index) {
+        if (defender.dead) {
+            primaryTargets.push(index);
+            console.log(defender);
+        }
+        else if ((defenders[index - 1] && defenders[index - 1].dead) || (defenders[index + 1] && defenders[index + 1].dead)) {
+            secondaryTargets.push(index);
+        }
+    });
+
+    primaryTargets.forEach(function(primaryTarget) {
+        let selectedAttacker = -1;
+        let selectedAttackerDistance = 0;
+        attackers.forEach(function(attacker, attackerIndex) {
+            const distance = Math.abs(defenders[primaryTarget].y - attacker.y);
+            if (!attacker.target) {
+                if (selectedAttacker < 0 || distance < selectedAttackerDistance) {
+                    selectedAttacker = attackerIndex;
+                    selectedAttackerDistance = distance;
+                }
+            }
+        });
+
+        attackers[selectedAttacker].target = primaryTarget;
+    });
+
+    secondaryTargets.forEach(function(secondaryTarget) {
+        let selectedAttacker = -1;
+        let selectedAttackerDistance = 0;
+        attackers.forEach(function(attacker, attackerIndex) {
+            const distance = Math.abs(defenders[secondaryTarget].y - attacker.y);
+            if (!attacker.target) {
+                if (selectedAttacker < 0 || distance < selectedAttackerDistance) {
+                    selectedAttacker = attackerIndex;
+                    selectedAttackerDistance = distance;
+                }
+            }
+        });
+
+        if (selectedAttacker > 0) {
+            attackers[selectedAttacker].target = secondaryTarget;
+            console.log('selected secondary', selectedAttacker, secondaryTarget);
+        }
+    });
+
+    console.log(attackers, defenders);
 }
 
 calculateFight({ type: 'swordsmen', count: 10 }, { type: 'peasant', count: 20 }, 5);
