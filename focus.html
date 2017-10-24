@@ -1,5 +1,6 @@
 <html>
     <head>
+        <script src="//unpkg.com/mithril/mithril.js"></script>
         <script src="https://aframe.io/releases/0.6.1/aframe.min.js"></script>
         <script src="https://rawgit.com/ngokevin/aframe-animation-component/master/dist/aframe-animation-component.min.js"></script>
         <script src="https://rawgit.com/protyze/aframe-curve-component/master/dist/aframe-curve-component.min.js"></script>
@@ -363,12 +364,13 @@
                 </a-entity>
             </a-scene>
         </div>
+        <div id="player"></div>
         <script>
             const army = document.getElementsByTagName('a-army')[0];
 
             let timer = 0;
 
-            window.setInterval(function() {
+            const increaseTimer = function() {
                 timer += 0.01;
 
                 if (timer > 1) {
@@ -376,7 +378,37 @@
                 }
 
                 army.dispatchEvent(new CustomEvent('timelineUpdate', { detail: timer }));
-            }, 10);
+            };
+
+            const decreaseTimer = function() {
+                timer -= 0.01;
+
+                if (timer < 0) {
+                    timer +=1;
+                }
+
+                army.dispatchEvent(new CustomEvent('timelineUpdate', { detail: timer }));
+            };
+
+            const Player = {
+                view: function() {
+                    return m('.player', [
+                        m('button', {
+                            onclick: function() {
+                                decreaseTimer();
+                            }
+                        }, '<'),
+                        m('div', timer),
+                        m('button', {
+                            onclick: function() {
+                                increaseTimer();
+                            }
+                        }, '>'),
+                    ])
+                }
+            }
+
+            m.mount(document.querySelector('#player'), Player);
         </script>
     </body>
 </html>
