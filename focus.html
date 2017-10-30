@@ -310,49 +310,45 @@
         </div>
         <div id="player"></div>
         <script>
-            const army = document.getElementsByTagName('a-army')[0];
+            const InteractivePlayer = {
+                oninit: function(vnode) {
+                    vnode.state.pause = true;
+                    vnode.state.timer = 0;
 
-            let timer = 0;
+                    const army = document.getElementsByTagName('a-army')[0];
 
-            const increaseTimer = function() {
-                timer += 0.01;
+                    window.setInterval(function() {
+                        if (!vnode.state.pause) {
+                            vnode.state.timer += 0.01;
 
-                if (timer > 1) {
-                    timer -=1;
-                }
+                            if (vnode.state.timer > 1) {
+                                vnode.state.timer -=1;
+                            }
 
-                army.dispatchEvent(new CustomEvent('timelineUpdate', { detail: timer }));
-            };
-
-            const decreaseTimer = function() {
-                timer -= 0.01;
-
-                if (timer < 0) {
-                    timer +=1;
-                }
-
-                army.dispatchEvent(new CustomEvent('timelineUpdate', { detail: timer }));
-            };
-
-            const Player = {
-                view: function() {
+                            army.dispatchEvent(new CustomEvent('timelineUpdate', { detail: vnode.state.timer }));
+                            m.redraw();
+                        }
+                    }, 100);
+                },
+                oncreate: function(vnode) {
+                },
+                view: function (vnode) {
                     return m('.player', [
                         m('button', {
                             onclick: function() {
-                                decreaseTimer();
+                                vnode.state.pause = !vnode.state.pause;
                             }
-                        }, '<'),
-                        m('div', timer),
-                        m('button', {
-                            onclick: function() {
-                                increaseTimer();
-                            }
-                        }, '>'),
-                    ])
+                        }, vnode.state.pause ? 'play' : 'pause'),
+                        m('div', vnode.state.timer)
+                    ]);
                 }
-            }
+            };
 
-            m.mount(document.querySelector('#player'), Player);
+            m.mount(document.querySelector('#player'), {
+                view: function() {
+                    return m(InteractivePlayer, {});
+                }
+            });
         </script>
     </body>
 </html>
