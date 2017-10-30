@@ -122,7 +122,6 @@
                 init: function () {
                     const data = this.data;
                     const el = this.el;
-                    let fraction = 0.001;
 
                     const positions = Array.prototype.slice.call(this.el.querySelectorAll('a-position')).map(function(el) {
                         return el.getAttribute('timeline-data').split(' ').map(parseFloat);
@@ -133,78 +132,21 @@
                         return vec;
                     });
 
-                    const curve = new THREE.CatmullRomCurve3(
-                        positionV
-                    );
-
                     const steps = [];
 
-                    for (let i = 0; i < 100; i++) {
-                        const fraction = i / 100;
-                        const position = curve.getPointAt(fraction);
-
-                        steps.push({
-                            step: i,
-                            fraction: fraction,
-                            position: position,
-                        });
-                    }
-
-                    let nearestStep = 0;
-
-                    positionV.forEach(function(originalPosition, positionIndex) {
-                        if (positionIndex == positionV.length - 1) {
-                            return;
-                        }
-
-                        steps.forEach(function(step, index) {
-                            if (index > nearestStep) {
-                                if (step.position.distanceTo(originalPosition) < steps[nearestStep].position.distanceTo(originalPosition)) {
-                                    nearestStep = index;
-                                }
-                            }
-                        });
-
-                        steps[nearestStep].positionIndex = positionIndex;
+                    steps.push({
+                        calulatedTime: 0,
+                        position: positionV[0],
                     });
 
-                    let lastPositionIndex = 0;
-
-                    steps.forEach(function(step, index) {
-                        if (step.positionIndex) {
-                            lastPositionIndex = step.positionIndex;
-                        } else {
-                            step.positionIndex = lastPositionIndex;
-                        }
+                    steps.push({
+                        calulatedTime: 0.5,
+                        position: positionV[1],
                     });
 
-                    const positionGroups = {};
-
-                    steps.forEach(function(step, index) {
-                        if (!positionGroups[step.positionIndex]) {
-                            positionGroups[step.positionIndex] = {
-                                length: 0,
-                                start: -1
-                            };
-                        }
-                        if (positionGroups[step.positionIndex].start < 0) {
-                            positionGroups[step.positionIndex].start = index;
-                        }
-                        else {
-                            positionGroups[step.positionIndex].end = index;
-                        }
-                        positionGroups[step.positionIndex].length++;
-                    });
-
-                    steps.forEach(function(step, index) {
-                        const positionGroup = positionGroups[step.positionIndex];
-                        step.fraction =  (step.step - positionGroup.start) / positionGroup.length;
-                    });
-
-                    steps.forEach(function(step, index) {
-                        step.timeA = positions[step.positionIndex][0];
-                        step.timeB = positions[step.positionIndex + 1][0];
-                        step.calulatedTime = (step.timeB - step.timeA) * step.fraction + step.timeA;
+                    steps.push({
+                        calulatedTime: 1,
+                        position: positionV[2],
                     });
 
                     const calculatePosition = function(frameFraction) {
@@ -233,8 +175,10 @@
                         return calcPosition;
                     };
 
+                    const startPos = calculatePosition(0);
+                    el.setAttribute('position', startPos.x + ', ' + startPos.y + ', ' + startPos.z);
+
                     el.addEventListener('timelineUpdate', function (ev) {
-                        console.log('NICE!!!', ev.detail);
                         const pos = calculatePosition(ev.detail);
                         el.setAttribute('position', pos.x + ', ' + pos.y + ', ' + pos.z);
                     });
