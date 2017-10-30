@@ -100,18 +100,18 @@
                     +'<a-position timeline-data="0.5 '+defender.y+' 0 '+defender.x+'"></a-position>'
                     +'<a-position timeline-data="1 '+defender.y+' 0 '+defender.x+'"></a-position>';
 
-                    figures.push('<a-figure position="'+attacker.y+' 0 '+attacker.x+'">'+positionString+'</a-figure>');
+                    figures.push('<a-figure position="0 0 0">'+positionString+'</a-figure>');
                 });
 
                 defenders.forEach(function(defender) {
                     const positionString = '<a-position timeline-data="0 '+defender.y+' 0 '+defender.x+'"></a-position>'
                     +'<a-position timeline-data="0.5 '+defender.y+' 0 '+defender.x+'"></a-position>'
-                    +'<a-position timeline-data="1 '+defender.y+' 0 '+(defender.x + 1) +'"></a-position>';
+                    +'<a-position timeline-data="1 '+defender.y+' 0 '+( defender.x + (defender.dead ? 2 : 1) ) +'"></a-position>';
 
-                    figures.push('<a-figure position="'+defender.y+' 0 '+defender.x+'">'+positionString+'</a-figure>');
+                    figures.push('<a-figure position="0 0 0">'+positionString+'</a-figure>');
                 });
 
-                return figures.join();
+                return figures.join('');
             }
 
             AFRAME.registerComponent('timeline', {
@@ -246,26 +246,6 @@
 
             AFRAME.registerComponent('army', {
                 init: function () {
-                    const figures = [];
-
-                    for (var y = 0; y < 5; y++) {
-                        for (var x = 0; x < 10; x++) {
-
-                            const randomX = Math.random();
-                            const randomY = Math.random();
-                            const middle = Math.random()/5 + 0.2;
-                            const height = Math.random()/5 + 0.2;
-                            const end = (1 - middle) * Math.random() + middle;
-
-                            const positionString = '<a-position timeline-data="0 '+randomX+' 0 0"></a-position>'
-                            +'<a-position timeline-data="'+middle+' '+randomX+' '+height+' '+randomY/2+'"></a-position>'
-                            +'<a-position timeline-data="'+end+' '+randomX+' 0 '+randomY+'"></a-position>'
-                            +'<a-position timeline-data="1 '+randomX+' 0 '+randomY+'"></a-position>';
-
-                            figures.push('<a-figure position="'+y+' 0 '+x+'">'+positionString+'</a-figure>');
-                        }
-                    }
-
                     this.el.innerHTML = calculateFight({ type: 'swordsmen', count: 10 }, { type: 'peasant', count: 20 }, 5);
 
                     const figureNodes = this.el.querySelectorAll('a-figure');
@@ -290,7 +270,7 @@
     </head>
     <body>
         <div style="width: 512px; height: 512px;">
-            <a-scene embedded="true" stats>
+            <a-scene embedded="true">
 
             <a-assets>
                 <script id="head" type="html">
@@ -319,7 +299,7 @@
 
                     window.setInterval(function() {
                         if (!vnode.state.pause) {
-                            vnode.state.timer += 0.01;
+                            vnode.state.timer += 0.05;
 
                             if (vnode.state.timer > 1) {
                                 vnode.state.timer -=1;
@@ -328,7 +308,7 @@
                             army.dispatchEvent(new CustomEvent('timelineUpdate', { detail: vnode.state.timer }));
                             m.redraw();
                         }
-                    }, 100);
+                    }, 30);
                 },
                 oncreate: function(vnode) {
                 },
