@@ -11,7 +11,7 @@
         <script src="https://rawgit.com/scenevr/htmltexture-component/master/dist/aframe-htmltexture-component.min.js"></script>
         <script src="https://rawgit.com/donmccurdy/aframe-extras/master/dist/aframe-extras.loaders.min.js"></script>
         <script>
-            const calculateFight = function(attackingTroop, defendingTroop, losses) {
+            const calculateFightOutcome = function(attackingTroop, defendingTroop, losses) {
                 const defenders = [];
                 const attackers = [];
 
@@ -90,6 +90,17 @@
                 });
 
                 console.log(attackers, defenders);
+
+                return {
+                    attackers: attackers,
+                    defenders: defenders
+                };
+            };
+
+            const calculateFight = function(attackingTroop, defendingTroop, losses) {
+                const combatResult = calculateFightOutcome(attackingTroop, defendingTroop, losses);
+                const attackers = combatResult.attackers;
+                const defenders = combatResult.defenders;
 
                 const figures = [];
 
