@@ -12,11 +12,12 @@
         <script src="https://rawgit.com/donmccurdy/aframe-extras/master/dist/aframe-extras.loaders.min.js"></script>
         <script>
             const calculateFightOutcome = function(attackingTroop, defendingTroop, losses) {
-                const defenders = [];
-                const attackers = [];
+                let defenders = [];
+                let attackers = [];
 
                 for (let d = 0; d < defendingTroop.count; d++) {
                     defenders.push({
+                        id: 'D'+(d+1),
                         type: defendingTroop.type,
                         x: 1,
                         y: d - defendingTroop.count / 2
@@ -25,71 +26,66 @@
 
                 for (let a = 0; a < attackingTroop.count; a++) {
                     attackers.push({
+                        id: 'A'+(a+1),
                         type: attackingTroop.type,
                         x: -1,
                         y: a - attackingTroop.count / 2
                     })
                 }
 
-                let killedDefenders = 0;
+                defenders = defenders.sort(function(a, b) {
+                    return Math.abs(a.y) - Math.abs(b.y);
+                });
 
-                while (killedDefenders <= losses) {
-                    const randomDefenderId = Math.floor(Math.random() * defenders.length);
-                    if (!defenders[randomDefenderId].dead) {
-                        defenders[randomDefenderId].dead = true;
-                        killedDefenders++;
+                attackers = attackers.sort(function(a, b) {
+                    return Math.abs(a.y) - Math.abs(b.y);
+                });
+
+                let killedDefenders = 0;
+                let neededTargets = attackingTroop.count;
+
+                for (let round = 0; round < attackingTroop.count; round ++) {
+                    let randomDefenders = defenders.filter(function(d) {
+                        return !d.attacked && !d.ignored;
+                    });
+
+                    if (randomDefenders.length > neededTargets) {
+                        randomDefenders[0].attacked = true;
+                        if (randomDefenders[1]) {
+                            randomDefenders[1].ignored = true;
+                        }
+                        neededTargets--;
+                    } else {
+                        randomDefenders[0].attacked = true;
+                        neededTargets--;
                     }
                 }
+
+                defenders.forEach(function(defender) {
+                    if(defender.attacked && killedDefenders < losses) {
+                        defender.dead = true;
+                        killedDefenders++;
+                    }
+
+                });
 
                 const primaryTargets = [];
                 const secondaryTargets = [];
 
                 defenders.forEach(function(defender, index) {
-                    if (defender.dead) {
-                        primaryTargets.push(index);
-                        console.log(defender);
-                    }
-                    else if ((defenders[index - 1] && defenders[index - 1].dead) || (defenders[index + 1] && defenders[index + 1].dead)) {
-                        secondaryTargets.push(index);
+                    if (defender.dead || defender.attacked) {
+                        primaryTargets.push(defender.id);
                     }
                 });
 
-                primaryTargets.forEach(function(primaryTarget) {
-                    let selectedAttacker = -1;
-                    let selectedAttackerDistance = 0;
-                    attackers.forEach(function(attacker, attackerIndex) {
-                        const distance = Math.abs(defenders[primaryTarget].y - attacker.y);
-                        if (!attacker.target) {
-                            if (selectedAttacker < 0 || distance < selectedAttackerDistance) {
-                                selectedAttacker = attackerIndex;
-                                selectedAttackerDistance = distance;
-                            }
-                        }
+                // primary targets needs to be sorted or something
+                primaryTargets.forEach(function(primaryTargetId) {
+                    const defender = defenders.find(function(d) {
+                        return d.id == primaryTargetId;
                     });
 
-                    attackers[selectedAttacker].target = primaryTarget;
+                    attackers.find(function(a) { return !a.target; }).target = primaryTargetId;
                 });
-
-                secondaryTargets.forEach(function(secondaryTarget) {
-                    let selectedAttacker = -1;
-                    let selectedAttackerDistance = 0;
-                    attackers.forEach(function(attacker, attackerIndex) {
-                        const distance = Math.abs(defenders[secondaryTarget].y - attacker.y);
-                        if (!attacker.target) {
-                            if (selectedAttacker < 0 || distance < selectedAttackerDistance) {
-                                selectedAttacker = attackerIndex;
-                                selectedAttackerDistance = distance;
-                            }
-                        }
-                    });
-
-                    if (selectedAttacker > 0) {
-                        attackers[selectedAttacker].target = secondaryTarget;
-                        console.log('selected secondary', selectedAttacker, secondaryTarget);
-                    }
-                });
-
-                console.log(attackers, defenders);
 
                 return {
                     attackers: attackers,
@@ -98,6 +94,8 @@
             };
 
             const calculateFight = function(attackingTroop, defendingTroop, losses) {
+                return '';
+
                 const combatResult = calculateFightOutcome(attackingTroop, defendingTroop, losses);
                 const attackers = combatResult.attackers;
                 const defenders = combatResult.defenders;
@@ -105,7 +103,9 @@
                 const figures = [];
 
                 attackers.forEach(function(attacker) {
-                    const defender = defenders[attacker.target];
+                    const defender = defenders.find(function(d) {
+                        return d.id == attacker.target;
+                    });
 
                     const positionString = '<a-position timeline-data="0 '+attacker.y+' 0 '+attacker.x+'"></a-position>'
                     +'<a-position timeline-data="0.5 '+defender.y+' 0 '+defender.x+'"></a-position>'
@@ -335,9 +335,78 @@
                 }
             };
 
+            const CombatSimulator = {
+                oninit: function(vnode) {
+                    vnode.state.outcome = calculateFightOutcome({ type: 'swordsmen', count: 10 }, { type: 'peasant', count: 20 }, 5);
+                },
+                oncreate: function(vnode) {
+                },
+                view: function (vnode) {
+                    const centerY = 110;
+                    const centerX = 40;
+
+                    return m('div', [
+                        m('div', m('button', {
+                            onclick: function() {
+                                vnode.state.outcome = calculateFightOutcome({ type: 'swordsmen', count: 10 }, { type: 'peasant', count: 20 }, 5);
+                            }
+                        }, 'recalculate')),
+                        m('svg', {
+                            width: 100,
+                            height: 220,
+                            style: {
+                                border: '1px solid red'
+                            }
+                        }, [
+                            m('g', vnode.state.outcome.defenders.map(function(defender) {
+                                return m('rect', {
+                                    fill: defender.dead ? 'red' : 'green',
+                                    width: 8,
+                                    height: 8,
+                                    x: centerX + defender.x * 10,
+                                    y: centerY + defender.y * 10
+                                });
+                            })),
+                            m('g', vnode.state.outcome.attackers.map(function(attacker) {
+                                console.log(attacker);
+                                return m('rect', {
+                                    fill: 'blue',
+                                    width: 8,
+                                    height: 8,
+                                    x: centerX + attacker.x * 10,
+                                    y: centerY + attacker.y * 10
+                                });
+                            })),
+                            m('g', vnode.state.outcome.attackers.map(function(attacker) {
+
+                                const defender = vnode.state.outcome.defenders.find(function(d) {
+                                    return d.id == attacker.target;
+                                });
+
+                                if (!defender) {
+                                    return '';
+                                }
+
+                                return m('line', {
+                                    stroke: defender.dead ? 'red' : 'black',
+                                    'stroke-width': 2,
+                                    x1: centerX + attacker.x * 10 + 5,
+                                    y1: centerY + attacker.y * 10 + 5,
+                                    x2: centerX + defender.x * 10 + 5,
+                                    y2: centerY + defender.y * 10 + 5
+                                });
+                            }))
+                        ])
+                    ]);
+                }
+            };
+
             m.mount(document.querySelector('#player'), {
                 view: function() {
-                    return m(InteractivePlayer, {});
+                    return [
+                        m(InteractivePlayer, {}),
+                        m(CombatSimulator, {})
+                    ];
                 }
             });
         </script>
