@@ -1,0 +1,38 @@
+<html>
+    <head>
+        <title>sprite</title>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/4.5.1/pixi.min.js"></script>
+    </head>
+    <body>
+        <script type="text/javascript">
+            var renderer = new PIXI.CanvasRenderer(
+                256, 256,
+                {
+                    antialias: false,
+                    transparent: false,
+                    resolution: 1
+                }
+            );
+
+            renderer.autoResize = true;
+            renderer.resize(512, 512);
+
+            renderer.backgroundColor = 0x061639;
+
+            //Add the canvas to the HTML document
+            document.body.appendChild(renderer.view);
+
+            PIXI.loader
+              .add('farmer.png')
+              .load(function() {
+                var stage = new PIXI.Container();
+                var texture = PIXI.utils.TextureCache['farmer.png'];
+                var sprite = new PIXI.Sprite(texture);
+                stage.addChild(sprite);
+                //Tell the `renderer` to `render` the `stage`
+                renderer.render(stage);
+            });
+
+        </script>
+    </body>
+</html>
