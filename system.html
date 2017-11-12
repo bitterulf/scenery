@@ -96,17 +96,47 @@
                 this.sprite.alpha = state.alpha;
             };
 
-            const createBoard = function() {
+            let globalTime = 0;
+
+            const sceneData = [
+                {
+                    name: 'f1',
+                    image: 'point.png',
+                    scale: 1,
+                    keyframes: [
+                        {key: 0, x: 10, y: 10, alpha: 1, color: [1, 1, 1]},
+                        {key: 0.5, x: 100, y: 10, alpha: 1, color: [1, 0, 0]},
+                        {key: 1, x: 10, y: 100, alpha: 0, color: [0, 0, 0]}
+                    ]
+                },
+                {
+                    name: 'f2',
+                    image: 'point.png',
+                    scale: 1,
+                    keyframes: [
+                        {key: 0, x: 10, y: 10, alpha: 1, color: [1, 1, 1]},
+                        {key: 0.5, x: 10, y: 100, alpha: 1, color: [1, 0, 0]},
+                        {key: 1, x: 100, y: 10, alpha: 0, color: [0, 0, 0]}
+                    ]
+                }
+            ];
+
+        	function loadStuff(sceneData) {
+                let loader = PIXI.loader;
+                sceneData.forEach(function(entry) {
+                    loader = loader.add(entry.name, entry.image);
+                });
+
+                return loader;
+            }
+
+            const createSpriteFromEntry = function(entry) {
                 const sprite = new PIXI.Sprite(
-                    PIXI.loader.resources.board.texture
+                    PIXI.loader.resources[entry.name].texture
                 );
 
-                sprite.x = 128;
-                sprite.y = 128;
-                sprite.width = 86;
-                sprite.height = 67;
-                sprite.scale.x = 3;
-                sprite.scale.y = 3;
+                sprite.scale.x = entry.scale;
+                sprite.scale.y = entry.scale;
                 sprite.rotation = 0.0;
                 sprite.anchor.x = 0.5;
                 sprite.anchor.y = 0.5;
@@ -114,69 +144,86 @@
                 sprite.interactive = true;
                 sprite.buttonMode = true;
 
-                sprite.on('pointerup', function() {
-                });
+                sprite.on('pointerup', function() {});
 
                 return sprite;
             };
 
-            let globalTime = 0;
+            const createRenderer = function() {
+                const renderer = PIXI.autoDetectRenderer(
+                    256, 256,
+                    {antialias: false, transparent: false, resolution: 1}
+                );
 
-            PIXI.loader
-                .add("board", 'front.png')
-                .load(function() {
-                    console.log(PIXI.utils.rgb2hex([255, 0, 255]));
+                renderer.view.style.border = "1px dashed black";
+                renderer.backboardColor = 0x061639;
+                renderer.autoResize = true;
+                renderer.resize(512, 512);
 
-                    const keyframes = [
-                        {key: 0, x: 0, y: 0, alpha: 1, color: [1, 1, 1]},
-                        {key: 0.5, x: 100, y: 0, alpha: 1, color: [1, 0, 0]},
-                        {key: 1, x: 0, y: 100, alpha: 0, color: [0, 0, 0]}
-                    ];
+                document.body.appendChild(renderer.view);
 
-                    const renderer = PIXI.autoDetectRenderer(
-                        256, 256,
-                        {antialias: false, transparent: false, resolution: 1}
-                    );
+                return renderer;
+            };
 
-                    renderer.view.style.border = "1px dashed black";
+            const setupLoop = function(renderer, stage) {
+                function gameLoop() {
+                    requestAnimationFrame(gameLoop);
 
-                    renderer.backboardColor = 0x061639;
+                    renderer.render(stage);
+                }
 
-                    renderer.autoResize = true;
-                    renderer.resize(512, 512);
+                gameLoop();
+            };
 
-                    document.body.appendChild(renderer.view);
-                    const stage = new PIXI.Container();
+            const setupTimer = function(timelineSprites) {
+                globalTime = 0;
 
-                    globalTime = 0;
-
-                    const board = createBoard();
-
-                    stage.addChild(board);
-
-                    const timelineSprites = [
-                        new timelineSprite(board, keyframes)
-                    ];
-
-                    function gameLoop() {
-                        requestAnimationFrame(gameLoop);
-
-                        renderer.render(stage);
+                window.setInterval(function() {
+                    globalTime += 0.01;
+                    if (globalTime > 1) {
+                        globalTime -= 1;
                     }
 
-                    gameLoop();
+                    timelineSprites.forEach(function(timelineSprite) {
+                        timelineSprite.updateTime(globalTime)
+                    });
 
-                    window.setInterval(function() {
-                        globalTime += 0.01;
-                        if (globalTime > 1) {
-                            globalTime -= 1;
-                        }
+                }, 1000 / 30);
+            };
 
-                        timelineSprites.forEach(function(timelineSprite) {
-                            timelineSprite.updateTime(globalTime)
-                        });
+            const sceneData2timelineSprites = function(sceneData) {
+                const timelineSprites = [];
 
-                    }, 1000 / 30);
+                sceneData.forEach(function(entry) {
+                    const sprite = createSpriteFromEntry(entry);
+
+                    // stage.addChild(sprite);
+
+                    timelineSprites.push(new timelineSprite(sprite, entry.keyframes));
+                });
+
+                return timelineSprites;
+            };
+
+            const attachSpritesToStage = function(timelineSprites, stage) {
+                timelineSprites.forEach(function(timelineSprite) {
+                    stage.addChild(timelineSprite.sprite);
+                });
+            };
+
+            loadStuff(sceneData)
+                .load(function() {
+                    const renderer = createRenderer();
+
+                    const stage = new PIXI.Container();
+
+                    const timelineSprites = sceneData2timelineSprites(sceneData);
+
+                    attachSpritesToStage(timelineSprites, stage);
+
+                    setupLoop(renderer, stage);
+
+                    setupTimer(timelineSprites);
                 });
         </script>
     </body>
