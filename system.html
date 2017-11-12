@@ -96,6 +96,51 @@
                 this.sprite.alpha = state.alpha;
             };
 
+            const createActions = function() {
+                const actions = [];
+
+                actions.push({
+                    id: 'id1',
+                    image: 'point.png',
+                    time: '100',
+                    x: 100,
+                    y: 200,
+                    status: 'idle'
+                });
+
+                actions.push({
+                    id: 'id1',
+                    time: '400',
+                    x: 200,
+                    y: 200,
+                    status: 'attacking'
+                });
+
+                actions.push({
+                    id: 'id1',
+                    time: '500',
+                    x: 200,
+                    y: 200,
+                    status: 'idle'
+                });
+
+                actions.push({
+                    id: 'id1',
+                    time: '500',
+                    x: 150,
+                    y: 200,
+                    status: 'hurt'
+                });
+
+                actions.push({
+                    id: 'id1',
+                    time: '600',
+                    x: 150,
+                    y: 200,
+                    status: 'dead'
+                });
+            };
+
             let globalTime = 0;
 
             const sceneData = [
