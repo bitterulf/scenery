@@ -1,0 +1,96 @@
+<html>
+    <head>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/4.5.1/pixi.min.js"></script>
+    </head>
+    <body>
+        <script>
+            const EasingFunctions = {
+                // no easing, no acceleration
+                linear: function (t) { return t },
+                // accelerating from zero velocity
+                easeInQuad: function (t) { return t*t },
+                // decelerating to zero velocity
+                easeOutQuad: function (t) { return t*(2-t) },
+                // acceleration until halfway, then deceleration
+                easeInOutQuad: function (t) { return t<.5 ? 2*t*t : -1+(4-2*t)*t },
+                // accelerating from zero velocity
+                easeInCubic: function (t) { return t*t*t },
+                // decelerating to zero velocity
+                easeOutCubic: function (t) { return (--t)*t*t+1 },
+                // acceleration until halfway, then deceleration
+                easeInOutCubic: function (t) { return t<.5 ? 4*t*t*t : (t-1)*(2*t-2)*(2*t-2)+1 },
+                // accelerating from zero velocity
+                easeInQuart: function (t) { return t*t*t*t },
+                // decelerating to zero velocity
+                easeOutQuart: function (t) { return 1-(--t)*t*t*t },
+                // acceleration until halfway, then deceleration
+                easeInOutQuart: function (t) { return t<.5 ? 8*t*t*t*t : 1-8*(--t)*t*t*t },
+                // accelerating from zero velocity
+                easeInQuint: function (t) { return t*t*t*t*t },
+                // decelerating to zero velocity
+                easeOutQuint: function (t) { return 1+(--t)*t*t*t*t },
+                // acceleration until halfway, then deceleration
+                easeInOutQuint: function (t) { return t<.5 ? 16*t*t*t*t*t : 1+16*(--t)*t*t*t*t }
+            };
+
+            PIXI.loader
+                .add("ground", 'front.png')
+                .load(function() {
+                    const renderer = PIXI.autoDetectRenderer(
+                        256, 256,
+                        {antialias: false, transparent: false, resolution: 1}
+                    );
+
+                    renderer.view.style.border = "1px dashed black";
+
+                    renderer.backgroundColor = 0x061639;
+
+                    renderer.autoResize = true;
+                    renderer.resize(512, 512);
+
+                    document.body.appendChild(renderer.view);
+                    const stage = new PIXI.Container();
+
+                    const ground = new PIXI.Sprite(
+                        PIXI.loader.resources.ground.texture
+                    );
+
+                    ground.x = 128;
+                    ground.y = 128;
+                    ground.width = 86;
+                    ground.height = 67;
+                    ground.scale.x = 3;
+                    ground.scale.y = 3;
+                    ground.rotation = 0.0;
+                    ground.anchor.x = 0.5;
+                    ground.anchor.y = 0.5;
+
+                    ground.interactive = true;
+                    ground.buttonMode = true;
+
+                    ground.factor = 0;
+
+                    ground.on('pointerup', function() {
+                    });
+
+                    stage.addChild(ground);
+
+                    function gameLoop() {
+                        requestAnimationFrame(gameLoop);
+
+                        ground.factor += 0.01;
+                        if (ground.factor > 1) {
+                            ground.factor -= 1;
+                        }
+
+                        ground.x = EasingFunctions.easeInOutQuint(ground.factor) * 128;
+                        ground.y = EasingFunctions.easeInOutQuad(ground.factor) * 128;
+
+                        renderer.render(stage);
+                    }
+
+                    gameLoop();
+                });
+        </script>
+    </body>
+</html>
