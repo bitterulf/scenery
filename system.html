@@ -33,9 +33,106 @@
                 easeInOutQuint: function (t) { return t<.5 ? 16*t*t*t*t*t : 1+16*(--t)*t*t*t*t }
             };
 
+            const getInterpolationIndexes = function(keyframes, key) {
+                let firstIndex = 0;
+                keyframes.forEach(function(keyframe, index) {
+                    if (keyframe.key <= key) {
+                        firstIndex = index;
+                    }
+                });
+
+                if (firstIndex == keyframes.length - 1) {
+                    return [firstIndex, firstIndex];
+                }
+                else {
+                    return [firstIndex, firstIndex + 1];
+                }
+            };
+
+            const getInterpolationState = function(keyframes, key) {
+                const indexes = getInterpolationIndexes(keyframes, key);
+                const startFrame = keyframes[indexes[0]];
+                const goalFrame = keyframes[indexes[1]];
+                const totalTime = goalFrame.key - startFrame.key;
+                if (totalTime == 0) {
+                    return {
+                        x: startFrame.x,
+                        y: startFrame.y,
+                        color: startFrame.color,
+                        alpha: startFrame.alpha
+                    }
+                }
+
+                const currentTime = key - startFrame.key;
+                const percent = currentTime / totalTime;
+
+                const factor = EasingFunctions.easeInOutQuint(percent);
+
+                const color = [
+                    (goalFrame.color[0] - startFrame.color[0]) * factor + startFrame.color[0],
+                    (goalFrame.color[1] - startFrame.color[1]) * factor + startFrame.color[1],
+                    (goalFrame.color[2] - startFrame.color[2]) * factor + startFrame.color[2]
+                ];
+
+                return {
+                    x: (goalFrame.x - startFrame.x) * factor + startFrame.x,
+                    y: (goalFrame.y - startFrame.y) * factor + startFrame.y,
+                    color: color,
+                    alpha: (goalFrame.alpha - startFrame.alpha) * factor + startFrame.alpha,
+                }
+            }
+
+            const timelineSprite = function(sprite, keyframes) {
+                this.sprite = sprite;
+                this.keyframes = keyframes;
+            };
+
+            timelineSprite.prototype.updateTime = function(time) {
+                const state = getInterpolationState(this.keyframes, time);
+
+                this.sprite.x = state.x;
+                this.sprite.y = state.y;
+                this.sprite.tint = PIXI.utils.rgb2hex(state.color);
+                this.sprite.alpha = state.alpha;
+            };
+
+            const createBoard = function() {
+                const sprite = new PIXI.Sprite(
+                    PIXI.loader.resources.board.texture
+                );
+
+                sprite.x = 128;
+                sprite.y = 128;
+                sprite.width = 86;
+                sprite.height = 67;
+                sprite.scale.x = 3;
+                sprite.scale.y = 3;
+                sprite.rotation = 0.0;
+                sprite.anchor.x = 0.5;
+                sprite.anchor.y = 0.5;
+
+                sprite.interactive = true;
+                sprite.buttonMode = true;
+
+                sprite.on('pointerup', function() {
+                });
+
+                return sprite;
+            };
+
+            let globalTime = 0;
+
             PIXI.loader
-                .add("ground", 'front.png')
+                .add("board", 'front.png')
                 .load(function() {
+                    console.log(PIXI.utils.rgb2hex([255, 0, 255]));
+
+                    const keyframes = [
+                        {key: 0, x: 0, y: 0, alpha: 1, color: [1, 1, 1]},
+                        {key: 0.5, x: 100, y: 0, alpha: 1, color: [1, 0, 0]},
+                        {key: 1, x: 0, y: 100, alpha: 0, color: [0, 0, 0]}
+                    ];
+
                     const renderer = PIXI.autoDetectRenderer(
                         256, 256,
                         {antialias: false, transparent: false, resolution: 1}
@@ -43,7 +140,7 @@
 
                     renderer.view.style.border = "1px dashed black";
 
-                    renderer.backgroundColor = 0x061639;
+                    renderer.backboardColor = 0x061639;
 
                     renderer.autoResize = true;
                     renderer.resize(512, 512);
@@ -51,45 +148,35 @@
                     document.body.appendChild(renderer.view);
                     const stage = new PIXI.Container();
 
-                    const ground = new PIXI.Sprite(
-                        PIXI.loader.resources.ground.texture
-                    );
+                    globalTime = 0;
 
-                    ground.x = 128;
-                    ground.y = 128;
-                    ground.width = 86;
-                    ground.height = 67;
-                    ground.scale.x = 3;
-                    ground.scale.y = 3;
-                    ground.rotation = 0.0;
-                    ground.anchor.x = 0.5;
-                    ground.anchor.y = 0.5;
+                    const board = createBoard();
 
-                    ground.interactive = true;
-                    ground.buttonMode = true;
+                    stage.addChild(board);
 
-                    ground.factor = 0;
-
-                    ground.on('pointerup', function() {
-                    });
-
-                    stage.addChild(ground);
+                    const timelineSprites = [
+                        new timelineSprite(board, keyframes)
+                    ];
 
                     function gameLoop() {
                         requestAnimationFrame(gameLoop);
-
-                        ground.factor += 0.01;
-                        if (ground.factor > 1) {
-                            ground.factor -= 1;
-                        }
-
-                        ground.x = EasingFunctions.easeInOutQuint(ground.factor) * 128;
-                        ground.y = EasingFunctions.easeInOutQuad(ground.factor) * 128;
 
                         renderer.render(stage);
                     }
 
                     gameLoop();
+
+                    window.setInterval(function() {
+                        globalTime += 0.01;
+                        if (globalTime > 1) {
+                            globalTime -= 1;
+                        }
+
+                        timelineSprites.forEach(function(timelineSprite) {
+                            timelineSprite.updateTime(globalTime)
+                        });
+
+                    }, 1000 / 30);
                 });
         </script>
     </body>
