@@ -102,7 +102,7 @@
                 actions.push({
                     id: 'id1',
                     image: 'point.png',
-                    time: '100',
+                    time: 100,
                     x: 100,
                     y: 200,
                     status: 'idle'
@@ -110,7 +110,7 @@
 
                 actions.push({
                     id: 'id1',
-                    time: '400',
+                    time: 400,
                     x: 200,
                     y: 200,
                     status: 'attacking'
@@ -118,7 +118,7 @@
 
                 actions.push({
                     id: 'id1',
-                    time: '500',
+                    time: 401,
                     x: 200,
                     y: 200,
                     status: 'idle'
@@ -126,7 +126,7 @@
 
                 actions.push({
                     id: 'id1',
-                    time: '500',
+                    time: 500,
                     x: 150,
                     y: 200,
                     status: 'hurt'
@@ -134,37 +134,107 @@
 
                 actions.push({
                     id: 'id1',
-                    time: '600',
+                    time: 600,
                     x: 150,
                     y: 200,
                     status: 'dead'
                 });
+
+                return actions;
             };
+
+            const createSceneDataFromActions = function(actions) {
+                const sprites = {};
+
+                const states = {
+                    attacking: {
+                        alpha: 1,
+                        color: [1, 1, 1]
+                    },
+                    idle: {
+                        alpha: 1,
+                        color: [1, 1, 1]
+                    },
+                    hurt: {
+                        alpha: 1,
+                        color: [1, 0, 0]
+                    },
+                    dead: {
+                        alpha: 0.5,
+                        color: [0.5, 0.5, 0.5]
+                    }
+                };
+
+                actions.forEach(function(action) {
+                    if (!sprites[action.id]) {
+                        sprites[action.id] = [];
+                    }
+
+                    sprites[action.id].push(action);
+                });
+
+                let result = [];
+
+                Object.keys(sprites).forEach(function(id) {
+                    const spriteActions = sprites[id].sort(function(a, b) {
+                        return a.time > b.time
+                    });
+
+                    const images = spriteActions.map(function(spriteAction) {
+                        return spriteAction.image;
+                    }).filter(function(image) { return image; });
+
+                    result.push({
+                        name: id,
+                        image: images[0],
+                        scale: 1,
+                        keyframes: spriteActions.map(function(spriteAction) {
+                            console.log('SPC', spriteAction);
+                            const state = states[spriteAction.status];
+                            return {
+                                key: spriteAction.time,
+                                x: spriteAction.x,
+                                y: spriteAction.y,
+                                alpha: state.alpha,
+                                color: state.color
+                            };
+                        })
+                    });
+                });
+
+                let maxTime = 0;
+
+                result.forEach(function(entry) {
+                    entry.keyframes.forEach(function(keyframe) {
+                        if (keyframe.key > maxTime) {
+                            maxTime = keyframe.key;
+                        }
+                    });
+                });
+
+                result = result.map(function(entry) {
+                    entry.keyframes = entry.keyframes.map(function(keyframe) {
+                        keyframe.key = keyframe.key / maxTime;
+
+                        return keyframe;
+                    });
+
+                    if (entry.keyframes[0].key != 0) {
+                        entry.keyframes.unshift(JSON.parse(JSON.stringify(entry.keyframes[0])));
+                        entry.keyframes[0].key = 0;
+                    }
+
+                    return entry;
+                });
+
+                return result;
+            }
+
+            console.log(createSceneDataFromActions(createActions()));
 
             let globalTime = 0;
 
-            const sceneData = [
-                {
-                    name: 'f1',
-                    image: 'point.png',
-                    scale: 1,
-                    keyframes: [
-                        {key: 0, x: 10, y: 10, alpha: 1, color: [1, 1, 1]},
-                        {key: 0.5, x: 100, y: 10, alpha: 1, color: [1, 0, 0]},
-                        {key: 1, x: 10, y: 100, alpha: 0, color: [0, 0, 0]}
-                    ]
-                },
-                {
-                    name: 'f2',
-                    image: 'point.png',
-                    scale: 1,
-                    keyframes: [
-                        {key: 0, x: 10, y: 10, alpha: 1, color: [1, 1, 1]},
-                        {key: 0.5, x: 10, y: 100, alpha: 1, color: [1, 0, 0]},
-                        {key: 1, x: 100, y: 10, alpha: 0, color: [0, 0, 0]}
-                    ]
-                }
-            ];
+            const sceneData = createSceneDataFromActions(createActions());
 
         	function loadStuff(sceneData) {
                 let loader = PIXI.loader;
