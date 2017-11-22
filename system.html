@@ -263,25 +263,25 @@
                 }
 
                 const attackers = [];
-                for (var d = 0; d < 10; d++) {
-                    const defender = new Actor(actions, 'at'+d, 'point.png', 0, -20, 20 + (d * 20), 'idle');
+                for (var a = 0; a < 10; a++) {
+                    const defender = new Actor(actions, 'at'+a, 'point.png', 0, -20, 20 + (a * 20), 'idle');
                     attackers.push(defender);
                 }
 
-                attackers.forEach(function(defender, d) {
-                    defender.walking(MoveTo(100, 20 + (d * 20)), ChangeTimeBy(200));
+                attackers.forEach(function(attacker, a) {
+                    attacker.walking(MoveTo(100, 20 + (a * 20)), ChangeTimeBy(200));
                 });
 
                 syncActors(attackers);
 
-                attackers.forEach(function(defender, d) {
-                    defender.walking(MoveBy(50, 0), ChangeTimeBy(RandomTime(50, 150)));
+                attackers.forEach(function(attacker, a) {
+                    attacker.walking(MoveBy(50, 0), ChangeTimeBy(RandomTime(50, 150)));
                 });
 
                 syncActors(attackers);
 
-                attackers.forEach(function(defender, d) {
-                    defender.attacking(MoveBy(50, 0), ChangeTimeBy(RandomTime(20, 40)));
+                attackers.forEach(function(attacker, a) {
+                    attacker.attacking(MoveBy(50, 0), ChangeTimeBy(RandomTime(20, 40)));
                 });
 
                 return actions;
