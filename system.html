@@ -210,21 +210,27 @@
             const createActions = function() {
                 const actions = [];
 
-                const actor = new Actor(actions, 'id1', 'point.png', 0, 100, 200, 'idle');
-                const actor2 = new Actor(actions, 'id2', 'point.png', 0, 300, 200, 'idle');
-                const actor3 = new Actor(actions, 'id3', 'point.png', 0, 800, 250, 'idle');
+                // const actor = new Actor(actions, 'id1', 'point.png', 0, 100, 200, 'idle');
+                // const actor2 = new Actor(actions, 'id2', 'point.png', 0, 300, 200, 'idle');
+                // const actor3 = new Actor(actions, 'id3', 'point.png', 0, 800, 250, 'idle');
 
-                actor3.walking(MoveTo(300, 250));
+                const defenders = [];
+                for (var d = 0; d < 10; d++) {
+                    const defender = new Actor(actions, 'def'+d, 'point.png', 0, -20, 20 + (d * 20), 'idle');
+                    defender.walking(MoveTo(100, 20 + (d * 20)));
+                    defender.walking(MoveBy(50, 0));
+                    defender.attacking(MoveBy(50, 0))
+                    defenders.push(defender);
+                }
 
-                actor
-                    .attacking(MoveTowards(actor2));
-                actor2
-                    .idle(100)
-                    .hurt(MoveBy(50, 0));
+                // actor3.walking(MoveTo(300, 250));
 
-                    // .idle(10)
-                    // .hurt(MoveBy(-50, 0))
-                    // .dead(MoveTo(0, 0));
+                // actor
+                    // .attacking(MoveTowards(actor2));
+                // actor2
+                    // .idle(100)
+                    // .hurt(MoveBy(50, 0));
+
 
                 return actions;
             };
