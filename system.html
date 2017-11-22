@@ -97,10 +97,10 @@
             };
 
             const Actor = function(actions, id, image, time, x, y, status) {
+
                 this.id = id;
                 this.image = image;
-                this.x = x;
-                this.y = y;
+                this.position = {x: x, y: y};
                 this.status = status;
                 this.time = time;
                 this.actions = actions;
@@ -108,22 +108,50 @@
                 this.addAction();
             };
 
+            Actor.prototype.applyPositionChange = function(positionChange) {
+                if (positionChange) {
+                    if (positionChange.type == 'moveBy') {
+                        this.position.x += positionChange.x;
+                        this.position.y += positionChange.y;
+                    }
+                    else if (positionChange.type == 'moveTo') {
+                        this.position.x = positionChange.x;
+                        this.position.y = positionChange.y;
+                    }
+                }
+            };
+
             Actor.prototype.addAction = function() {
                 this.actions.push({
                     id: this.id,
                     image: this.image,
                     time: this.time,
-                    x: this.x,
-                    y: this.y,
+                    x: this.position.x,
+                    y: this.position.y,
                     status: this.status
                 });
             };
 
-            Actor.prototype.attacking = function(x, y) {
-                this.time += 100;
+            Actor.prototype.position = function() {
                 this.x = x;
                 this.y = y;
+
+                return this;
+            };
+
+            Actor.prototype.attacking = function(positionChange) {
+                this.applyPositionChange(positionChange);
+                this.time += 100;
                 this.status = 'attacking';
+                this.addAction();
+
+                return this;
+            };
+
+            Actor.prototype.walking = function(positionChange) {
+                this.applyPositionChange(positionChange);
+                this.time += 100;
+                this.status = 'walking';
                 this.addAction();
 
                 return this;
@@ -137,36 +165,66 @@
                 return this;
             };
 
-            Actor.prototype.hurt = function(x, y) {
+            Actor.prototype.hurt = function(positionChange) {
+                this.applyPositionChange(positionChange);
                 this.time += 100;
-                this.x = x;
-                this.y = y;
                 this.status = 'hurt';
                 this.addAction();
 
                 return this;
             };
 
-            Actor.prototype.dead = function(x, y) {
+            Actor.prototype.dead = function(positionChange) {
+                this.applyPositionChange(positionChange);
                 this.time += 100;
-                this.x = x;
-                this.y = y;
                 this.status = 'dead';
                 this.addAction();
 
                 return this;
             };
 
+            const MoveTo = function(x, y) {
+                return {
+                    x: x,
+                    y: y,
+                    type: 'moveTo'
+                };
+            };
+
+            const MoveBy = function(x, y) {
+                return {
+                    x: x,
+                    y: y,
+                    type: 'moveBy'
+                };
+            };
+
+            const MoveTowards = function(actor) {
+                return {
+                    x: actor.position.x,
+                    y: actor.position.y,
+                    type: 'moveTo'
+                };
+            };
+
             const createActions = function() {
                 const actions = [];
 
                 const actor = new Actor(actions, 'id1', 'point.png', 0, 100, 200, 'idle');
+                const actor2 = new Actor(actions, 'id2', 'point.png', 0, 300, 200, 'idle');
+                const actor3 = new Actor(actions, 'id3', 'point.png', 0, 800, 250, 'idle');
+
+                actor3.walking(MoveTo(300, 250));
 
                 actor
-                    .attacking(200, 200)
-                    .idle(200)
-                    .hurt(150, 200)
-                    .dead(150, 200);
+                    .attacking(MoveTowards(actor2));
+                actor2
+                    .idle(100)
+                    .hurt(MoveBy(50, 0));
+
+                    // .idle(10)
+                    // .hurt(MoveBy(-50, 0))
+                    // .dead(MoveTo(0, 0));
 
                 return actions;
             };
@@ -178,6 +236,10 @@
                     attacking: {
                         alpha: 1,
                         color: [1, 1, 1]
+                    },
+                    walking: {
+                        alpha: 1,
+                        color: [0.5, 0.5, 1]
                     },
                     idle: {
                         alpha: 1,
