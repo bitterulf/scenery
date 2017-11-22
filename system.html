@@ -96,49 +96,77 @@
                 this.sprite.alpha = state.alpha;
             };
 
+            const Actor = function(actions, id, image, time, x, y, status) {
+                this.id = id;
+                this.image = image;
+                this.x = x;
+                this.y = y;
+                this.status = status;
+                this.time = time;
+                this.actions = actions;
+
+                this.addAction();
+            };
+
+            Actor.prototype.addAction = function() {
+                this.actions.push({
+                    id: this.id,
+                    image: this.image,
+                    time: this.time,
+                    x: this.x,
+                    y: this.y,
+                    status: this.status
+                });
+            };
+
+            Actor.prototype.attacking = function(x, y) {
+                this.time += 100;
+                this.x = x;
+                this.y = y;
+                this.status = 'attacking';
+                this.addAction();
+
+                return this;
+            };
+
+            Actor.prototype.idle = function(time) {
+                this.time += time;
+                this.status = 'idle';
+                this.addAction();
+
+                return this;
+            };
+
+            Actor.prototype.hurt = function(x, y) {
+                this.time += 100;
+                this.x = x;
+                this.y = y;
+                this.status = 'hurt';
+                this.addAction();
+
+                return this;
+            };
+
+            Actor.prototype.dead = function(x, y) {
+                this.time += 100;
+                this.x = x;
+                this.y = y;
+                this.status = 'dead';
+                this.addAction();
+
+                return this;
+            };
+
             const createActions = function() {
                 const actions = [];
 
-                actions.push({
-                    id: 'id1',
-                    image: 'point.png',
-                    time: 100,
-                    x: 100,
-                    y: 200,
-                    status: 'idle'
-                });
+                const actor = new Actor(actions, 'id1', 'point.png', 0, 100, 200, 'idle');
 
-                actions.push({
-                    id: 'id1',
-                    time: 400,
-                    x: 200,
-                    y: 200,
-                    status: 'attacking'
-                });
-
-                actions.push({
-                    id: 'id1',
-                    time: 401,
-                    x: 200,
-                    y: 200,
-                    status: 'idle'
-                });
-
-                actions.push({
-                    id: 'id1',
-                    time: 500,
-                    x: 150,
-                    y: 200,
-                    status: 'hurt'
-                });
-
-                actions.push({
-                    id: 'id1',
-                    time: 600,
-                    x: 150,
-                    y: 200,
-                    status: 'dead'
-                });
+                actor
+                    .attacking(200, 200)
+                    .idle(200)
+                    .hurt(150, 200)
+                    .dead(150, 200);
 
                 return actions;
             };
