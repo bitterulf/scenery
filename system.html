@@ -121,6 +121,17 @@
                 }
             };
 
+            Actor.prototype.applyTimeChange = function(timeChange) {
+                if (timeChange) {
+                    if (timeChange.type == 'changeTimeBy') {
+                        this.time += timeChange.time;
+                    }
+                    else if (timeChange.type == 'changeTimeTo') {
+                        this.time = timeChange.time;
+                    }
+                }
+            };
+
             Actor.prototype.addAction = function() {
                 this.actions.push({
                     id: this.id,
@@ -139,44 +150,44 @@
                 return this;
             };
 
-            Actor.prototype.attacking = function(positionChange, time) {
+            Actor.prototype.attacking = function(positionChange, timeChange) {
                 this.applyPositionChange(positionChange);
-                this.time += time || 100;
+                this.applyTimeChange(timeChange);
                 this.status = 'attacking';
                 this.addAction();
 
                 return this;
             };
 
-            Actor.prototype.walking = function(positionChange, time) {
+            Actor.prototype.walking = function(positionChange, timeChange) {
                 this.applyPositionChange(positionChange);
-                this.time += time || 100;
+                this.applyTimeChange(timeChange);
                 this.status = 'walking';
                 this.addAction();
 
                 return this;
             };
 
-            Actor.prototype.idle = function(time) {
-                this.time += time;
+            Actor.prototype.idle = function(timeChange) {
+                this.applyTimeChange(timeChange);
                 this.status = 'idle';
                 this.addAction();
 
                 return this;
             };
 
-            Actor.prototype.hurt = function(positionChange, time) {
+            Actor.prototype.hurt = function(positionChange, timeChange) {
                 this.applyPositionChange(positionChange);
-                this.time += time || 100;
+                this.applyTimeChange(timeChange);
                 this.status = 'hurt';
                 this.addAction();
 
                 return this;
             };
 
-            Actor.prototype.dead = function(positionChange, time) {
+            Actor.prototype.dead = function(positionChange, timeChange) {
                 this.applyPositionChange(positionChange);
-                this.time += time || 100;
+                this.applyTimeChange(timeChange);
                 this.status = 'dead';
                 this.addAction();
 
@@ -199,6 +210,20 @@
                 };
             };
 
+            const ChangeTimeBy = function(time) {
+                return {
+                    time: time,
+                    type: 'changeTimeBy'
+                };
+            };
+
+            const ChangeTimeTo = function(time) {
+                return {
+                    time: time,
+                    type: 'changeTimeTo'
+                };
+            };
+
             const MoveTowards = function(actor) {
                 return {
                     x: actor.position.x,
@@ -218,6 +243,19 @@
                 // const actor2 = new Actor(actions, 'id2', 'point.png', 0, 300, 200, 'idle');
                 // const actor3 = new Actor(actions, 'id3', 'point.png', 0, 800, 250, 'idle');
 
+                const syncActors = function(actors) {
+                    let maxTime = 0;
+                    actors.forEach(function(actor) {
+                        if (actor.time > maxTime) {
+                            maxTime = actor.time
+                        }
+                    });
+
+                    actors.forEach(function(actor) {
+                        actor.idle(ChangeTimeTo(maxTime + 10));
+                    });
+                };
+
                 const defenders = [];
                 for (var d = 0; d < 10; d++) {
                     const defender = new Actor(actions, 'def'+d, 'point.png', 0, -20, 20 + (d * 20), 'idle');
@@ -225,15 +263,19 @@
                 }
 
                 defenders.forEach(function(defender, d) {
-                    defender.walking(MoveTo(100, 20 + (d * 20)), 200);
+                    defender.walking(MoveTo(100, 20 + (d * 20)), ChangeTimeBy(200));
                 });
 
-                defenders.forEach(function(defender, d) {
-                    defender.walking(MoveBy(50, 0), RandomTime(150, 50));
-                });
+                syncActors(defenders);
 
                 defenders.forEach(function(defender, d) {
-                    defender.attacking(MoveBy(50, 0), RandomTime(40, 20));
+                    defender.walking(MoveBy(50, 0), ChangeTimeBy(RandomTime(50, 150)));
+                });
+
+                syncActors(defenders);
+
+                defenders.forEach(function(defender, d) {
+                    defender.attacking(MoveBy(50, 0), ChangeTimeBy(RandomTime(20, 40)));
                 });
 
                 // actor3.walking(MoveTo(300, 250));
