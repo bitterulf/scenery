@@ -139,18 +139,18 @@
                 return this;
             };
 
-            Actor.prototype.attacking = function(positionChange) {
+            Actor.prototype.attacking = function(positionChange, time) {
                 this.applyPositionChange(positionChange);
-                this.time += 100;
+                this.time += time || 100;
                 this.status = 'attacking';
                 this.addAction();
 
                 return this;
             };
 
-            Actor.prototype.walking = function(positionChange) {
+            Actor.prototype.walking = function(positionChange, time) {
                 this.applyPositionChange(positionChange);
-                this.time += 100;
+                this.time += time || 100;
                 this.status = 'walking';
                 this.addAction();
 
@@ -165,18 +165,18 @@
                 return this;
             };
 
-            Actor.prototype.hurt = function(positionChange) {
+            Actor.prototype.hurt = function(positionChange, time) {
                 this.applyPositionChange(positionChange);
-                this.time += 100;
+                this.time += time || 100;
                 this.status = 'hurt';
                 this.addAction();
 
                 return this;
             };
 
-            Actor.prototype.dead = function(positionChange) {
+            Actor.prototype.dead = function(positionChange, time) {
                 this.applyPositionChange(positionChange);
-                this.time += 100;
+                this.time += time || 100;
                 this.status = 'dead';
                 this.addAction();
 
@@ -207,6 +207,10 @@
                 };
             };
 
+            const RandomTime = function(base, randomized) {
+                return base + Math.round(randomized * Math.random());
+            };
+
             const createActions = function() {
                 const actions = [];
 
@@ -217,11 +221,20 @@
                 const defenders = [];
                 for (var d = 0; d < 10; d++) {
                     const defender = new Actor(actions, 'def'+d, 'point.png', 0, -20, 20 + (d * 20), 'idle');
-                    defender.walking(MoveTo(100, 20 + (d * 20)));
-                    defender.walking(MoveBy(50, 0));
-                    defender.attacking(MoveBy(50, 0))
                     defenders.push(defender);
                 }
+
+                defenders.forEach(function(defender, d) {
+                    defender.walking(MoveTo(100, 20 + (d * 20)), 200);
+                });
+
+                defenders.forEach(function(defender, d) {
+                    defender.walking(MoveBy(50, 0), RandomTime(150, 50));
+                });
+
+                defenders.forEach(function(defender, d) {
+                    defender.attacking(MoveBy(50, 0), RandomTime(40, 20));
+                });
 
                 // actor3.walking(MoveTo(300, 250));
 
