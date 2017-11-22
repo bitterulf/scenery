@@ -104,6 +104,7 @@
                 this.status = status;
                 this.time = time;
                 this.actions = actions;
+                this.data = {};
 
                 this.addAction();
             };
@@ -252,9 +253,18 @@
             const createActions = function() {
                 const actions = [];
 
+                const defenders = [];
+                for (var d = 0; d < 10; d++) {
+                    const defender = new Actor(actions, 'def'+d, 'point.png', 0, 300, 20 + (d * 20), 'idle');
+                    if (Math.random() > 0.5) {
+                        defender.data.attacked = true;
+                    }
+                    defenders.push(defender);
+                }
+
                 const attackers = [];
                 for (var d = 0; d < 10; d++) {
-                    const defender = new Actor(actions, 'def'+d, 'point.png', 0, -20, 20 + (d * 20), 'idle');
+                    const defender = new Actor(actions, 'at'+d, 'point.png', 0, -20, 20 + (d * 20), 'idle');
                     attackers.push(defender);
                 }
 
