@@ -281,7 +281,15 @@
                 syncActors(attackers);
 
                 attackers.forEach(function(attacker, a) {
-                    attacker.attacking(MoveBy(50, 0), ChangeTimeBy(RandomTime(20, 40)));
+                    const target = defenders
+                        .filter(function(defender) {
+                            return defender.data.attacked;
+                        })
+                        .sort(function() {
+                            return Math.random() - 0.5;
+                        })[0];
+
+                    attacker.attacking(MoveTowards(target), ChangeTimeBy(RandomTime(100, 50)));
                 });
 
                 return actions;
