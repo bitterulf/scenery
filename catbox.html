@@ -48,11 +48,15 @@
             const config = {
                 stats: [
                     {name: 'time', type: 'sum', targets: ['wait', 'sleep']},
+                    // {name: 'stones', type: 'sum', targets: ['collectStone']},
                     {name: 'crackOpened', type: ['>=', 4], targets: ['wait', 'sleep']}
                 ],
                 locations: [
                     {
                         name: 'cave',
+                        actions: [
+                            // {name: 'collect stones', event: 'collectStone'}
+                        ],
                         connections: [
                             {name: 'to the beach', target: 'beach', requirements: ['crackOpened']}
                         ]
