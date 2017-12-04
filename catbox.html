@@ -1,0 +1,175 @@
+<html>
+    <head>
+        <script src="//unpkg.com/mithril/mithril.js"></script>
+        <script src="//unpkg.com/mithril-stream"></script>
+        <script>
+            const EventStore = {
+                oninit: function(vnode) {
+                    vnode.state.actions = m.stream([]);
+
+                    vnode.state.actionsAmount = vnode.state.actions.map(function(value) {
+                        return value.length
+                    });
+
+                    vnode.state.waitCount = vnode.state.actions
+                        .map(function(value) {
+                            return value.filter(function(action) {
+                                return action.type == 'wait';
+                            }).length
+                        });
+
+                    document.addEventListener('action', function (e) {
+                        const actions = vnode.state.actions()
+                        actions.push(e.detail)
+                        vnode.state.actions(actions);
+                        document.dispatchEvent(new CustomEvent('updateAction', { detail: actions }));
+                        m.redraw();
+                    });
+                },
+                oncreate: function(vnode) {
+                },
+                view: function (vnode) {
+                    return m('div', { style: { background: 'lightblue' } }, [
+                        m('h2', 'events: ' + vnode.state.actionsAmount()),
+                        m('h2', 'waits: ' + vnode.state.waitCount()),
+                        m('div', vnode.state.actions().map(function(action, actionIndex) {
+                            return m('div', ['action: ' + action.type, m('button', {
+                                onclick: function() {
+                                    const actions = vnode.state.actions();
+                                    actions.splice(actionIndex, 1);
+                                    vnode.state.actions(actions);
+                                }
+                            }, 'remove ' + vnode.state.actionsAmount())]);
+                        }))
+                    ]);
+                }
+            };
+
+            const config = {
+                stats: [
+                    {name: 'time', type: 'sum', targets: ['wait', 'sleep']},
+                    {name: 'crackOpened', type: ['>=', 4], targets: ['wait', 'sleep']}
+                ],
+                locations: [
+                    {
+                        name: 'cave',
+                        connections: [
+                            {name: 'to the beach', target: 'beach', requirements: ['crackOpened']}
+                        ]
+                    },
+                    {
+                        name: 'beach',
+                        connections: [
+                            {name: 'into the cave', target: 'cave'}
+                        ]
+                    }
+                ]
+            };
+
+            const getGameState = function(config, actions) {
+                const result = {
+                    stats: {}
+                };
+
+                config.stats.forEach(function(stat) {
+                    if (stat.type === 'sum') {
+                        result.stats[stat.name] = 0;
+                        actions.forEach(function(action) {
+                            if (stat.targets.indexOf(action.type) > -1) {
+                                result.stats[stat.name]++;
+                            }
+                        });
+                    }
+                    else if (stat.type.length == 2) {
+                        let internal = 0;
+
+                        actions.forEach(function(action) {
+                            if (stat.targets.indexOf(action.type) > -1) {
+                                internal++;
+                            }
+                        });
+
+                        if (stat.type[0] == '>=' && internal >= stat.type[1]) {
+                            result.stats[stat.name] = true;
+                        }
+                        else if (stat.type[0] == '<=' && internal <= stat.type[1]) {
+                            result.stats[stat.name] = true;
+                        }
+                        else if (stat.type[0] == '>' && internal > stat.type[1]) {
+                            result.stats[stat.name] = true;
+                        }
+                        else if (stat.type[0] == '<' && internal < stat.type[1]) {
+                            result.stats[stat.name] = true;
+                        }
+                        else if (stat.type[0] == '==' && internal == stat.type[1]) {
+                            result.stats[stat.name] = true;
+                        }
+                        else {
+                            result.stats[stat.name] = false;
+                        }
+                    }
+                });
+
+                result.locations = config.locations.map(function(location) {
+                    return {
+                        name: location.name,
+                        connections: location.connections.filter(function(connection) {
+                            if (!connection.requirements) {
+                                return true;
+                            }
+
+                            let visible = true;
+
+                            connection.requirements.forEach(function(requirement) {
+                                if (result.stats[requirement] !== true) {
+                                    visible = false;
+                                }
+                            });
+
+                            return visible;
+                        })
+                    }
+                });
+
+                return result;
+            };
+
+            const Game = {
+                oninit: function(vnode) {
+                    vnode.state.actions = m.stream([]);
+
+                    document.addEventListener('updateAction', function (e) {
+                        vnode.state.actions(e.detail);
+                        m.redraw();
+                    });
+                },
+                oncreate: function(vnode) {
+                },
+                view: function (vnode) {
+                    console.log(getGameState(config, vnode.state.actions()));
+
+                    return m('div', { style: { background: 'lightgrey' } }, [
+                        m('div', vnode.state.actions().map(function(action, actionIndex) {
+                            return m('div', 'action: ' + action.type);
+                        }))
+                    ]);
+                }
+            };
+        </script>
+    </head>
+    <body>
+        <div id="game"></div>
+        <button onclick="document.dispatchEvent(new CustomEvent('action', { detail: { type: 'wait' } }));">wait</button>
+        <button onclick="document.dispatchEvent(new CustomEvent('action', { detail: { type: 'stare' } }));">stare</button>
+        <script>
+            m.mount(document.querySelector('#game'), {
+                view: function() {
+                    return [
+                        m(EventStore, {}),
+                        m(Game, {})
+                    ];
+                }
+            });
+        </script>
+    </body>
+</html>
